@@ -9,14 +9,18 @@ interface Props {
   onStatusChange: (product: Product, status: string) => void;
   onEdit: (product: Product) => void;
   onDelete: (product: Product) => void;
+  /** Heading level for the product name (3 in the overview, 5 inside a collection). */
+  headingLevel?: 3 | 5;
 }
 
-export function ProductCard({ product, collectionName, onStatusChange, onEdit, onDelete }: Props) {
+export function ProductCard({ product, collectionName, onStatusChange, onEdit, onDelete, headingLevel = 5 }: Props) {
   const selectId = useId();
+  const Heading = headingLevel === 3 ? 'h3' : 'h5';
   return (
     <li className="product-card">
       <div className="product-card__header">
-        <h5 className="product-card__name">{product.name}</h5>
+        <Heading className="product-card__name">{product.name}</Heading>
+        {product.isDemo && <span className="collection-item__demo">Demo</span>}
         <span className={`badge badge--${product.status.toLowerCase()}`}>{product.status}</span>
       </div>
       <p className="product-card__meta">

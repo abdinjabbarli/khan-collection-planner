@@ -43,6 +43,7 @@ export function ProductList({
   const headingRef = externalHeadingRef ?? ownHeadingRef;
   const addBtnRef = useRef<HTMLButtonElement>(null);
 
+  const headingLevel = collection ? 5 : 3;
   const collectionName = (id: string) => collections.find((c) => c.id === id)?.name ?? '';
 
   useEffect(() => {
@@ -79,6 +80,7 @@ export function ProductList({
     if (adding) {
       return (
         <ProductForm
+          headingLevel={headingLevel}
           heading="Add product"
           submitLabel="Add product"
           initial={blank}
@@ -149,6 +151,7 @@ export function ProductList({
             p.id === editingId && editing ? (
               <li key={p.id} className="product-form__full">
                 <ProductForm
+                  headingLevel={headingLevel}
                   heading={`Edit ${p.name}`}
                   submitLabel="Update product"
                   initial={{
@@ -186,9 +189,15 @@ export function ProductList({
               <ProductCard
                 key={p.id}
                 product={p}
+                headingLevel={headingLevel}
                 collectionName={showCollectionName ? collectionName(p.collectionId) : undefined}
                 onStatusChange={(prod, status) => {
                   const r = store.setProductStatus(prod.id, status);
+                  if (r.ok && matches && !matches(r.value)) {
+                    setMessage(`"${r.value.name}" is now ${r.value.status}. It no longer matches the current filters.`);
+                    setFocus({ kind: 'heading' });
+                    return;
+                  }
                   setMessage(
                     r.ok ? `"${r.value.name}" is now ${r.value.status}` : (r.errors.status ?? 'Choose a valid status.'),
                   );

@@ -14,11 +14,13 @@ interface Props {
   /** Returns the store's validation errors, or null on success. */
   onSubmit: (input: ProductInput) => ValidationErrors<FieldKey> | null;
   onCancel: () => void;
+  headingLevel?: 3 | 5;
 }
 
 const FIELD_ORDER: FieldKey[] = ['name', 'type', 'colour', 'notes', 'status', 'collectionId'];
 
-export function ProductForm({ heading, submitLabel, initial, collections, onSubmit, onCancel }: Props) {
+export function ProductForm({ heading, submitLabel, initial, collections, onSubmit, onCancel, headingLevel = 5 }: Props) {
+  const Heading = headingLevel === 3 ? 'h3' : 'h5';
   const [values, setValues] = useState<ProductInput>(initial);
   const [errors, setErrors] = useState<ValidationErrors<FieldKey>>({});
   const refs = useRef<Partial<Record<FieldKey, FieldEl | null>>>({});
@@ -68,7 +70,7 @@ export function ProductForm({ heading, submitLabel, initial, collections, onSubm
 
   return (
     <form className="product-form card" onSubmit={submit} onKeyDown={onKeyDown} noValidate aria-labelledby={headingId}>
-      <h5 id={headingId}>{heading}</h5>
+      <Heading id={headingId}>{heading}</Heading>
       <div className="field product-form__full">
         <label className="field__label" htmlFor={id('name')}>
           Name
