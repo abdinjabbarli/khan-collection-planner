@@ -147,8 +147,9 @@ export function ProductForm({ heading, submitLabel, initial, collections, onSubm
           aria-invalid={invalid('notes')}
           aria-describedby={describe('notes', notesId)}
         />
-        <p className="field__counter" id={notesId}>
+        <p className={notesLen > LIMITS.notes ? 'field__counter field__counter--over' : 'field__counter'} id={notesId}>
           {notesLen} / {LIMITS.notes}
+          {notesLen > LIMITS.notes ? ` (${notesLen - LIMITS.notes} over)` : ''}
         </p>
         {error('notes')}
       </div>

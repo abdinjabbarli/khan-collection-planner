@@ -9,16 +9,19 @@ export default function App() {
   const { store, data, persistence } = useStore();
   return (
     <>
+      <a className="skip-link" href="#main-content">
+        Skip to main content
+      </a>
       <AppHeader />
       <StorageNotice status={persistence} />
-      <main className="container stack">
+      <main id="main-content" tabIndex={-1} className="container stack">
         <section className="stack" aria-labelledby="welcome-title">
           <h2 id="welcome-title">Welcome</h2>
           <p>
             Group your product ideas into collections. Add products with a name, type, colour and design notes,
             move them between collections, and change their status (Idea, Design, Sample, Ready) with a quick
-            selector. Filter all your products by collection, type and status from the overview. You can start with demo data or an empty planner. Your data stays in this browser only,
-            with no account and no server.
+            selector. Filter all your products by collection, type and status from the overview. Demo data can be loaded or removed from the Your data panel. Your data stays in this browser
+            only, with no account and no server.
           </p>
         </section>
         {data.onboarded && <CollectionsPanel store={store} data={data} />}

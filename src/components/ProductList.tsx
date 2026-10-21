@@ -19,6 +19,8 @@ interface Props {
   matches?: (product: Product) => boolean;
   /** Overview mode: content shown when the list is empty. */
   empty?: ReactNode;
+  /** Overview mode: when this value changes (e.g. filters), the status message is cleared. */
+  resetMessageKey?: string;
 }
 
 type Focus = { kind: 'heading' } | { kind: 'edit' | 'add'; id?: string };
@@ -32,6 +34,7 @@ export function ProductList({
   showCollectionName,
   matches,
   empty,
+  resetMessageKey,
 }: Props) {
   const [adding, setAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -42,6 +45,10 @@ export function ProductList({
   const ownHeadingRef = useRef<HTMLHeadingElement>(null);
   const headingRef = externalHeadingRef ?? ownHeadingRef;
   const addBtnRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    setMessage('');
+  }, [resetMessageKey]);
 
   const headingLevel = collection ? 5 : 3;
   const collectionName = (id: string) => collections.find((c) => c.id === id)?.name ?? '';
@@ -207,7 +214,10 @@ export function ProductList({
                   setMessage('');
                   setEditingId(prod.id);
                 }}
-                onDelete={(prod) => setDeleting(prod)}
+                onDelete={(prod) => {
+                  setMessage('');
+                  setDeleting(prod);
+                }}
               />
             ),
           )}

@@ -38,6 +38,9 @@ export function CollectionDetail({ store, collection, collections, products, pro
       <div className="collection-detail__header">
         {renaming ? (
           <>
+            <h3 id="collection-detail-title" className="sr-only">
+              {collection.name}
+            </h3>
             <CollectionForm
               label="Collection name"
               submitLabel="Save"

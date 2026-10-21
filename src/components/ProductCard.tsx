@@ -53,7 +53,7 @@ export function ProductCard({ product, collectionName, onStatusChange, onEdit, o
             type="button"
             className="btn btn--secondary"
             data-product-edit={product.id}
-            aria-label={`Edit ${product.name}`}
+            aria-label={collectionName !== undefined ? `Edit ${product.name} in ${collectionName}` : `Edit ${product.name}`}
             onClick={() => onEdit(product)}
           >
             Edit
@@ -62,7 +62,7 @@ export function ProductCard({ product, collectionName, onStatusChange, onEdit, o
             type="button"
             className="btn btn--danger"
             data-product-delete={product.id}
-            aria-label={`Delete ${product.name}`}
+            aria-label={collectionName !== undefined ? `Delete ${product.name} in ${collectionName}` : `Delete ${product.name}`}
             onClick={() => onDelete(product)}
           >
             Delete

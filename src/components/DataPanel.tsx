@@ -36,7 +36,7 @@ export function DataPanel({ store, data }: Props) {
         <h2 id="first-visit-title" ref={headingRef} tabIndex={-1}>
           Get started
         </h2>
-        {message && <p role="status">{message}</p>}
+        <p role="status">{message}</p>
         <p>
           Explore the planner with sample content, or begin with a blank slate. You can remove the sample
           content at any time.
@@ -72,7 +72,7 @@ export function DataPanel({ store, data }: Props) {
         Your data
       </h2>
       {hasDemo && <p className="badge badge--idea">Includes demo data (sample content)</p>}
-      {message && <p role="status">{message}</p>}
+      <p role="status">{message}</p>
       {collections === 0 && products === 0 && (
         <p className="empty-state">Nothing here yet. Collections and products will appear once you add them.</p>
       )}
@@ -98,6 +98,7 @@ export function DataPanel({ store, data }: Props) {
             <button type="button" className="btn btn--secondary" onClick={() => {
                 store.loadDemoData();
                 setMessage('Demo data added.');
+                setRefocusHeading(true);
               }}>
               Load demo data
             </button>
@@ -108,7 +109,10 @@ export function DataPanel({ store, data }: Props) {
           ref={triggerRef}
           type="button"
           className="btn btn--danger"
-          onClick={() => setConfirming(true)}
+          onClick={() => {
+            setMessage('');
+            setConfirming(true);
+          }}
         >
           Reset all data
         </button>

@@ -1,4 +1,4 @@
-import { useId, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import type { AppData, PlannerStore, ProductFilters } from '../domain';
 import {
   DEFAULT_FILTERS,
@@ -21,6 +21,8 @@ const plural = (n: number) => `${n} product${n === 1 ? '' : 's'}`;
 export function ProductsOverview({ store, data }: Props) {
   const [raw, setRaw] = useState<ProductFilters>(DEFAULT_FILTERS);
   const headingRef = useRef<HTMLHeadingElement>(null);
+  const collectionSelectRef = useRef<HTMLSelectElement>(null);
+  const [focusCollection, setFocusCollection] = useState(false);
   const ids = { c: useId(), t: useId(), s: useId() };
 
   const filters = normalizeFilters(raw, data.collections);
@@ -29,7 +31,17 @@ export function ProductsOverview({ store, data }: Props) {
   const statusCounts = countProductsByStatus(data.products);
   const total = data.products.length;
 
-  const clear = () => setRaw(DEFAULT_FILTERS);
+  useEffect(() => {
+    if (focusCollection) {
+      collectionSelectRef.current?.focus();
+      setFocusCollection(false);
+    }
+  }, [focusCollection]);
+
+  const clear = () => {
+    setRaw(DEFAULT_FILTERS);
+    setFocusCollection(true);
+  };
 
   let empty;
   if (total === 0) {
@@ -70,6 +82,7 @@ export function ProductsOverview({ store, data }: Props) {
           </label>
           <select
             id={ids.c}
+            ref={collectionSelectRef}
             className="field__control"
             value={filters.collectionId}
             onChange={(e) => setRaw({ ...filters, collectionId: e.target.value })}
@@ -130,6 +143,7 @@ export function ProductsOverview({ store, data }: Props) {
         collections={data.collections}
         products={matching}
         headingRef={headingRef}
+        resetMessageKey={JSON.stringify(filters)}
         showCollectionName
         matches={(p) => filterProducts([p], filters).length === 1}
         empty={empty}

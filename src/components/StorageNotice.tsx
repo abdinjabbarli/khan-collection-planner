@@ -4,7 +4,7 @@ const MESSAGES: Record<PersistenceStatus, string> = {
   persistent:
     'Your data is stored in this browser only (localStorage). It is not synced across devices or browsers, and clearing site data will erase it.',
   unavailable:
-    'Browser storage is blocked, so your changes are NOT saved and may be lost when the page closes.',
+    'Browser storage is unavailable or blocked, so your changes are NOT saved and may be lost when the page closes.',
   failed: 'The latest change could not be saved and may be lost.',
   recovered: 'Previously stored data was unreadable and was ignored. Your next change will replace it.',
 };
