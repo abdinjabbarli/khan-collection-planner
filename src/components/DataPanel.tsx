@@ -7,6 +7,11 @@ interface Props {
   data: AppData;
 }
 
+// The Collections panel mounts right after onboarding; move focus there once it exists.
+function focusCollectionsHeading() {
+  requestAnimationFrame(() => document.getElementById('collections-title')?.focus());
+}
+
 export function DataPanel({ store, data }: Props) {
   const [confirming, setConfirming] = useState(false);
   const [message, setMessage] = useState('');
@@ -37,10 +42,18 @@ export function DataPanel({ store, data }: Props) {
           content at any time.
         </p>
         <div className="cluster">
-          <button type="button" className="btn btn--primary" onClick={() => store.loadDemoData()}>
+          <button type="button" className="btn btn--primary" onClick={() => {
+              setMessage('');
+              store.loadDemoData();
+              focusCollectionsHeading();
+            }}>
             Load demo data (clearly labelled sample content)
           </button>
-          <button type="button" className="btn btn--secondary" onClick={() => store.startEmpty()}>
+          <button type="button" className="btn btn--secondary" onClick={() => {
+              setMessage('');
+              store.startEmpty();
+              focusCollectionsHeading();
+            }}>
             Start empty
           </button>
         </div>
