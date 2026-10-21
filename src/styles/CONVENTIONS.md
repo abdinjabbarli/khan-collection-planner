@@ -66,3 +66,27 @@ Store rule (domain): renaming a collection with `isDemo: true` sets `isDemo: fal
 - Item border uses `--color-muted` (about 7:1 on white) to meet 3:1 non-text contrast.
 - Long names wrap with `overflow-wrap: anywhere`; count and Demo tag never shrink.
 - `.collection-detail__actions` goes full width on mobile with buttons sharing the row; `.empty-state` inside `.collection-detail` is supported.
+
+## M2 contract: products (set by the main agent before parallel work)
+
+Store (domain): `setProductStatus(id, status)` added to `PlannerStore`; successful `updateProduct` / `setProductStatus` set `isDemo:false` on the product (see comment in `src/domain/store.ts`). Validation is unchanged (`LIMITS`, enums, collection must exist; errors keyed by `keyof ProductInput`).
+
+Class names the UI Builder will use and the Design System must style (document extras you add):
+
+- `.products` section wrapper inside `.collection-detail`; `.products__header` (h4 "Products" + "Add product" button, wraps on mobile).
+- `.product-list`: the `<ul>`; 1 column on mobile, 2 columns from 40rem (inside the detail pane). No bullets.
+- `.product-card` (the `<li>`): bordered card on `--color-white`. Parts: `.product-card__header` (name + status badge), `.product-card__name` (h5, wraps with overflow-wrap:anywhere), `.product-card__meta` (type and colour, muted), `.product-card__notes` (clamped to ~3 lines), `.product-card__footer`, `.product-card__status` (label + select, see below), `.product-card__actions` (Edit / Delete buttons).
+- Status control on the card is a native `<select class="field__control">` with a visible-or-visually-hidden label "Status for <name>"; the status is also always shown as text through `.badge.badge--idea|design|sample|ready`. Never colour alone.
+- `.product-form`: the add/edit form card. Fields stack on mobile and use 2 columns from 40rem; `.product-form__full` spans both columns (name, notes). `.product-form__actions` button row. Uses existing `.field`, `.field__label`, `.field__control`, `.field__hint`, `.field__error`; also style `textarea.field__control` (min 6rem tall, vertical resize) and `select.field__control`.
+- `.field__counter`: small muted "123 / 500" counter shown under the notes field; turns the danger colour when over the limit.
+- `.sr-only`: visually hidden but available to assistive tech (the Design System defines it in base.css if it is missing).
+- Reuse: `.card`, `.btn*`, `.empty-state`, `.badge*`, `.stack`, `.cluster`, `.dialog*`.
+
+Behaviour rules (UI):
+- Products live inside the selected collection's detail panel (`CollectionDetail`). The product count there and in the list must come from `countProductsByCollection`.
+- "Add product" opens `ProductForm` inline (collection preselected to the selected collection; also editable). Fields: Name (required, <=60), Type (select, PRODUCT_TYPES), Colour (<=40, optional), Design notes (textarea, <=500, optional, with counter), Status (select, STATUSES; default Idea), Collection (select). Errors from the store Result are shown inline per field, linked by `aria-describedby`, `aria-invalid="true"`, and the first invalid field is focused. Esc cancels. After a successful add: close the form, show a `role=status` message `Added "<name>"`, focus the new card's Edit button.
+- Edit uses the same form prefilled in place of the card (or above the list). Changing the collection moves the product: after save show `Moved "<name>" to "<collection>"` and move focus to the "Products" heading of the current collection; otherwise show `Saved changes to "<name>"`: NEVER use the word "saved" to claim persistence; say `Updated "<name>"` instead.
+- Status change on a card: `setProductStatus`, message `"<name>" is now <Status>`, focus stays on the select.
+- Delete: `ConfirmDialog` titled `Delete product?` with description naming the product: `Delete "<name>" from "<collection>"? This cannot be undone.` Cancel/Esc keep it and return focus to the Delete button; confirm deletes, shows `Deleted "<name>"`, focus goes to the "Products" heading.
+- Empty states: collection with no products: `No products in "<collection>" yet. Add your first product idea.` with an "Add product" button; no collections: existing copy; "Add product" is disabled/hidden until a collection exists (it only exists inside a selected collection anyway).
+- Welcome text (App.tsx) must describe the features now available: collections, product ideas with name/type/colour/notes/status, moving products between collections, quick status changes, demo data, data stored in this browser only.
