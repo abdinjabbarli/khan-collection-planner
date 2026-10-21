@@ -34,3 +34,10 @@ System font stacks only (no external font requests).
 - Minimum text contrast AA (4.5:1). Visible `:focus-visible` ring on every interactive element.
 - Touch targets at least 44px tall.
 - Respect `prefers-reduced-motion`.
+
+## Additions by design-system (M0)
+
+- Extra tokens: `--color-burgundy-dark` (hover), `--color-muted` (secondary text), `--color-border`, `--color-ok-bg/-text`, `--color-warning-bg/-text/-border`, `--color-{idea,design,sample,ready}-{bg,text}`, `--touch-target`, `--container-max`.
+- Layout: `.stack--lg` (larger gap), `.page` (main region padding, grows to fill), `.page-grid` (1/2/3 columns at 0/40rem/64rem).
+- Components: `.app-header__wordmark`, `.app-header__tagline`, `.app-footer`, `.dialog__actions` (button row), `.dialog` works on native `<dialog>` and styles `::backdrop`.
+- `#root` is a flex column so `.page` pushes `.app-footer` to the bottom.
