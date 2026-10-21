@@ -25,7 +25,7 @@ export function ProductCard({ product, onStatusChange, onEdit, onDelete }: Props
       <div className="product-card__footer">
         <div className="product-card__status">
           <label className="field__label" htmlFor={selectId}>
-            Status for {product.name}
+            Status<span className="sr-only"> for {product.name}</span>
           </label>
           <select
             id={selectId}
