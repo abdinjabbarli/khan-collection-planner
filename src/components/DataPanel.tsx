@@ -93,6 +93,17 @@ export function DataPanel({ store, data }: Props) {
             <p>Only sample content is removed. Your own items are kept.</p>
           </div>
         )}
+        {!hasDemo && (
+          <div className="stack">
+            <button type="button" className="btn btn--secondary" onClick={() => {
+                store.loadDemoData();
+                setMessage('Demo data added.');
+              }}>
+              Load demo data
+            </button>
+            <p>Adds clearly labelled sample content. Your own items are not changed.</p>
+          </div>
+        )}
         <button
           ref={triggerRef}
           type="button"

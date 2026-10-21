@@ -4,12 +4,14 @@ import type { Product } from '../domain';
 
 interface Props {
   product: Product;
+  /** Shown as "Collection: <name>" when provided (overview only). */
+  collectionName?: string;
   onStatusChange: (product: Product, status: string) => void;
   onEdit: (product: Product) => void;
   onDelete: (product: Product) => void;
 }
 
-export function ProductCard({ product, onStatusChange, onEdit, onDelete }: Props) {
+export function ProductCard({ product, collectionName, onStatusChange, onEdit, onDelete }: Props) {
   const selectId = useId();
   return (
     <li className="product-card">
@@ -21,6 +23,7 @@ export function ProductCard({ product, onStatusChange, onEdit, onDelete }: Props
         {product.type}
         {product.colour ? `, ${product.colour}` : ''}
       </p>
+      {collectionName !== undefined && <p className="product-card__collection">Collection: {collectionName}</p>}
       {product.notes && <p className="product-card__notes">{product.notes}</p>}
       <div className="product-card__footer">
         <div className="product-card__status">
