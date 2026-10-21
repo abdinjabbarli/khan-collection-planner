@@ -98,3 +98,28 @@ Behaviour rules (UI):
 - No other new classes. `.product-card` has no hover state (it is not clickable). Notes clamp to 3 lines and keep line breaks (`white-space: pre-line`).
 - `.product-card__actions` is full width on mobile with buttons sharing the row; `.product-card__footer` sticks to the card bottom so cards in a row align.
 - `select.field__control` keeps the native arrow and behaviour; `textarea.field__control` is vertical-resize only, min 6rem.
+
+## M3 contract: filters, overview and demo flows (set by the main agent before parallel work)
+
+Domain (Data & Logic implements, exported from `src/domain/index.ts`):
+- `DEFAULT_FILTERS: ProductFilters` = `{ collectionId: 'all', type: 'all', status: 'all' }`.
+- `hasActiveFilters(filters): boolean` (any value other than 'all').
+- `normalizeFilters(filters, collections): ProductFilters`: a `collectionId` that no longer exists becomes `'all'`; unknown `type`/`status` values become `'all'`.
+- `countProductsByStatus(products): Record<Status, number>` with all four statuses present (0 when empty).
+- `filterProducts` already exists (AND semantics). Result order = store order (stable).
+
+UI (UI Builder):
+- New `ProductsOverview` panel titled "All products" (h2, `tabIndex=-1`), rendered after `CollectionsPanel` once `data.onboarded`. Contains: a status summary line, a filter bar, a live result count, and the list of matching product cards (each card also shows its collection name).
+- Filter bar: three labelled native selects: Collection ("All collections" + each collection), Type ("All types" + PRODUCT_TYPES), Status ("All statuses" + STATUSES), combined with AND via `filterProducts`; a "Clear filters" button (disabled when nothing is active). Filters are UI state; pass them through `normalizeFilters` every render so a deleted collection resets to "All".
+- Result count: `<p role="status">` "Showing N of M products" (singular/plural correct), updates as filters/data change.
+- Empty states: no products at all, collections exist: `No products yet. Select a collection above and add your first product idea.`; no collections: `No products yet. Create a collection first.`; products exist but none match: `No products match these filters.` plus a "Clear filters" button. These are three distinct messages.
+- Shared list: extract the card list + inline edit form + delete `ConfirmDialog` + status messages from `ProductsSection` into a reusable component (e.g. `ProductList`) used by BOTH `ProductsSection` and `ProductsOverview`; behaviour rules from the M2 contract stay binding (Edit/Delete accessible names, focus handling, 'Moved', 'Updated', 'Deleted', no persistence claims). In the overview the delete dialog text is `Delete "<name>" from "<collection>"? This cannot be undone.` and after delete/move focus goes to the overview heading. A product edited so that it no longer matches the active filters disappears from the list; announce it via the status message.
+- `ProductCard` takes an optional `collectionName` prop and then shows it in `.product-card__collection` (text "Collection: <name>"). Collection detail lists do not show it.
+- DataPanel demo flow: when onboarded and there are NO demo records, show a secondary button "Load demo data" with the hint "Adds clearly labelled sample content. Your own items are not changed." (the store already skips names that exist). Keep "Remove demo data", "Reset all data" (confirmed) and all M0/M1/M2 behaviour.
+
+CSS (Design System styles exactly these; document extras):
+- `.filters`: the filter bar (a `<form>`-like wrapper or `<div role="group" aria-label="Filter products">`): 1 column on mobile, 3 columns + a clear button from 40rem; uses `.field`, `.field__label`, `select.field__control`.
+- `.filters__count`: the result count line, muted, small.
+- `.status-summary` (a `<ul>`) and `.status-summary__item` (inline pills: text "Idea 2"; each includes the status text; use the status badge colours via `.badge--*` classes on the item).
+- `.product-card__collection`: small muted line on the card.
+- `.overview`: optional wrapper for the All-products panel.
