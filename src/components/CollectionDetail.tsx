@@ -1,18 +1,21 @@
 import { useEffect, useRef, useState } from 'react';
-import type { Collection, PlannerStore } from '../domain';
+import type { Collection, PlannerStore, Product } from '../domain';
 import { CollectionForm } from './CollectionForm';
 import { ConfirmDialog } from './ConfirmDialog';
+import { ProductsSection } from './ProductsSection';
 
 interface Props {
   store: PlannerStore;
   collection: Collection;
+  collections: Collection[];
+  products: Product[];
   productCount: number;
   onDeleted: (name: string) => void;
 }
 
 const plural = (n: number) => `${n} product${n === 1 ? '' : 's'}`;
 
-export function CollectionDetail({ store, collection, productCount, onDeleted }: Props) {
+export function CollectionDetail({ store, collection, collections, products, productCount, onDeleted }: Props) {
   const [renaming, setRenaming] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [returnToRename, setReturnToRename] = useState(false);
@@ -35,6 +38,9 @@ export function CollectionDetail({ store, collection, productCount, onDeleted }:
       <div className="collection-detail__header">
         {renaming ? (
           <>
+            <h3 id="collection-detail-title" className="sr-only">
+              {collection.name}
+            </h3>
             <CollectionForm
               label="Collection name"
               submitLabel="Save"
@@ -65,9 +71,7 @@ export function CollectionDetail({ store, collection, productCount, onDeleted }:
       </div>
       {collection.isDemo && <p className="collection-item__demo">Demo (sample content)</p>}
       <p>{plural(productCount)}</p>
-      {productCount === 0 && (
-        <p className="empty-state">No products in this collection yet. Adding products arrives in the next update.</p>
-      )}
+      <ProductsSection store={store} collection={collection} collections={collections} products={products} />
       <ConfirmDialog
         open={confirming}
         title="Delete collection?"

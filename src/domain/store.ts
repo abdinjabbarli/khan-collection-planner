@@ -43,9 +43,19 @@ export interface PlannerStore {
   /** Also deletes the collection's products. */
   deleteCollection(id: string): void;
 
+  /**
+   * Product rules: any successful updateProduct / setProductStatus sets isDemo:false on that
+   * product (the user touched it), so "Remove demo data" never deletes it. Moving a product to
+   * another collection is just updateProduct with a new collectionId.
+   */
   addProduct(input: ProductInput): Result<Product, keyof ProductInput>;
   updateProduct(id: string, input: ProductInput): Result<Product, keyof ProductInput>;
   deleteProduct(id: string): void;
+  /**
+   * Quick status change from a product card. Errors are keyed 'status'.
+   * Like updateProduct, a successful change makes a demo product user-owned.
+   */
+  setProductStatus(id: string, status: string): Result<Product, 'status'>;
 
   /** Adds demo records (isDemo: true) and marks onboarded. Never touches user records. */
   loadDemoData(): void;

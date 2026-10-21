@@ -66,3 +66,84 @@ Store rule (domain): renaming a collection with `isDemo: true` sets `isDemo: fal
 - Item border uses `--color-muted` (about 7:1 on white) to meet 3:1 non-text contrast.
 - Long names wrap with `overflow-wrap: anywhere`; count and Demo tag never shrink.
 - `.collection-detail__actions` goes full width on mobile with buttons sharing the row; `.empty-state` inside `.collection-detail` is supported.
+
+## M2 contract: products (set by the main agent before parallel work)
+
+Store (domain): `setProductStatus(id, status)` added to `PlannerStore`; successful `updateProduct` / `setProductStatus` set `isDemo:false` on the product (see comment in `src/domain/store.ts`). Validation is unchanged (`LIMITS`, enums, collection must exist; errors keyed by `keyof ProductInput`).
+
+Class names the UI Builder will use and the Design System must style (document extras you add):
+
+- `.products` section wrapper inside `.collection-detail`; `.products__header` (h4 "Products" + "Add product" button, wraps on mobile).
+- `.product-list`: the `<ul>`; 1 column on mobile, 2 columns from 40rem (inside the detail pane). No bullets.
+- `.product-card` (the `<li>`): bordered card on `--color-white`. Parts: `.product-card__header` (name + status badge), `.product-card__name` (h5, wraps with overflow-wrap:anywhere), `.product-card__meta` (type and colour, muted), `.product-card__notes` (clamped to ~3 lines), `.product-card__footer`, `.product-card__status` (label + select, see below), `.product-card__actions` (Edit / Delete buttons).
+- Status control on the card is a native `<select class="field__control">` with a visible-or-visually-hidden label "Status for <name>"; the status is also always shown as text through `.badge.badge--idea|design|sample|ready`. Never colour alone.
+- `.product-form`: the add/edit form card. Fields stack on mobile and use 2 columns from 40rem; `.product-form__full` spans both columns (name, notes). `.product-form__actions` button row. Uses existing `.field`, `.field__label`, `.field__control`, `.field__hint`, `.field__error`; also style `textarea.field__control` (min 6rem tall, vertical resize) and `select.field__control`.
+- `.field__counter`: small muted "123 / 500" counter shown under the notes field; turns the danger colour when over the limit.
+- `.sr-only`: visually hidden but available to assistive tech (the Design System defines it in base.css if it is missing).
+- Reuse: `.card`, `.btn*`, `.empty-state`, `.badge*`, `.stack`, `.cluster`, `.dialog*`.
+
+Behaviour rules (UI):
+- Products live inside the selected collection's detail panel (`CollectionDetail`). The product count there and in the list must come from `countProductsByCollection`.
+- "Add product" opens `ProductForm` inline (collection preselected to the selected collection; also editable). Fields: Name (required, <=60), Type (select, PRODUCT_TYPES), Colour (<=40, optional), Design notes (textarea, <=500, optional, with counter), Status (select, STATUSES; default Idea), Collection (select). Errors from the store Result are shown inline per field, linked by `aria-describedby`, `aria-invalid="true"`, and the first invalid field is focused. Esc cancels. After a successful add: close the form, show a `role=status` message `Added "<name>"`, focus the new card's Edit button.
+- Edit uses the same form prefilled in place of the card (or above the list). Changing the collection moves the product: after save show `Moved "<name>" to "<collection>"` and move focus to the "Products" heading of the current collection; otherwise show `Saved changes to "<name>"`: NEVER use the word "saved" to claim persistence; say `Updated "<name>"` instead.
+- Status change on a card: `setProductStatus`, message `"<name>" is now <Status>`, focus stays on the select.
+- Delete: `ConfirmDialog` titled `Delete product?` with description naming the product: `Delete "<name>" from "<collection>"? This cannot be undone.` Cancel/Esc keep it and return focus to the Delete button; confirm deletes, shows `Deleted "<name>"`, focus goes to the "Products" heading.
+- Empty states: collection with no products: `No products in "<collection>" yet. Add your first product idea.` with an "Add product" button; no collections: existing copy; "Add product" is disabled/hidden until a collection exists (it only exists inside a selected collection anyway).
+- Welcome text (App.tsx) must describe the features now available: collections, product ideas with name/type/colour/notes/status, moving products between collections, quick status changes, demo data, data stored in this browser only.
+
+## Additions by design-system (M2)
+
+- New file `products.css` (imported from `index.css`) styles every M2 contract class. `.sr-only` was missing and is now in `base.css`.
+- `.field__counter--over`: modifier for the over-limit state (danger colour, bold). The UI should also keep the textual "n / 500" so it is not colour alone.
+- No other new classes. `.product-card` has no hover state (it is not clickable). Notes clamp to 3 lines and keep line breaks (`white-space: pre-line`).
+- `.product-card__actions` is full width on mobile with buttons sharing the row; `.product-card__footer` sticks to the card bottom so cards in a row align.
+- `select.field__control` keeps the native arrow and behaviour; `textarea.field__control` is vertical-resize only, min 6rem.
+
+## M3 contract: filters, overview and demo flows (set by the main agent before parallel work)
+
+Domain (Data & Logic implements, exported from `src/domain/index.ts`):
+- `DEFAULT_FILTERS: ProductFilters` = `{ collectionId: 'all', type: 'all', status: 'all' }`.
+- `hasActiveFilters(filters): boolean` (any value other than 'all').
+- `normalizeFilters(filters, collections): ProductFilters`: a `collectionId` that no longer exists becomes `'all'`; unknown `type`/`status` values become `'all'`.
+- `countProductsByStatus(products): Record<Status, number>` with all four statuses present (0 when empty).
+- `filterProducts` already exists (AND semantics). Result order = store order (stable).
+
+UI (UI Builder):
+- New `ProductsOverview` panel titled "All products" (h2, `tabIndex=-1`), rendered after `CollectionsPanel` once `data.onboarded`. Contains: a status summary line, a filter bar, a live result count, and the list of matching product cards (each card also shows its collection name).
+- Filter bar: three labelled native selects: Collection ("All collections" + each collection), Type ("All types" + PRODUCT_TYPES), Status ("All statuses" + STATUSES), combined with AND via `filterProducts`; a "Clear filters" button (disabled when nothing is active). Filters are UI state; pass them through `normalizeFilters` every render so a deleted collection resets to "All".
+- Result count: `<p role="status">` "Showing N of M products" (singular/plural correct), updates as filters/data change.
+- Empty states: no products at all, collections exist: `No products yet. Select a collection above and add your first product idea.`; no collections: `No products yet. Create a collection first.`; products exist but none match: `No products match these filters.` plus a "Clear filters" button. These are three distinct messages.
+- Shared list: extract the card list + inline edit form + delete `ConfirmDialog` + status messages from `ProductsSection` into a reusable component (e.g. `ProductList`) used by BOTH `ProductsSection` and `ProductsOverview`; behaviour rules from the M2 contract stay binding (Edit/Delete accessible names, focus handling, 'Moved', 'Updated', 'Deleted', no persistence claims). In the overview the delete dialog text is `Delete "<name>" from "<collection>"? This cannot be undone.` and after delete/move focus goes to the overview heading. A product edited so that it no longer matches the active filters disappears from the list; announce it via the status message.
+- `ProductCard` takes an optional `collectionName` prop and then shows it in `.product-card__collection` (text "Collection: <name>"). Collection detail lists do not show it.
+- DataPanel demo flow: when onboarded and there are NO demo records, show a secondary button "Load demo data" with the hint "Adds clearly labelled sample content. Your own items are not changed." (the store already skips names that exist). Keep "Remove demo data", "Reset all data" (confirmed) and all M0/M1/M2 behaviour.
+
+CSS (Design System styles exactly these; document extras):
+- `.filters`: the filter bar (a `<form>`-like wrapper or `<div role="group" aria-label="Filter products">`): 1 column on mobile, 3 columns + a clear button from 40rem; uses `.field`, `.field__label`, `select.field__control`.
+- `.filters__count`: the result count line, muted, small.
+- `.status-summary` (a `<ul>`) and `.status-summary__item` (inline pills: text "Idea 2"; each includes the status text; use the status badge colours via `.badge--*` classes on the item).
+- `.product-card__collection`: small muted line on the card.
+- `.overview`: optional wrapper for the All-products panel.
+
+## Additions by design-system (M3)
+
+- New file `filters.css` (imported from `index.css`) styles `.overview`, `.filters`, `.filters__count`, `.status-summary`, `.status-summary__item`, `.product-card__collection`. No new class names.
+- `.filters` is a grid: 1 column on mobile; from 40rem `repeat(3, 1fr) auto` with `align-items: end`, so the Clear button sits level with the selects (fields in the bar must not have hints/errors). `.filters__count` spans the full row when placed inside `.filters`; it also works outside. Selects have `max-width:100%` and ellipsis so long collection names never overflow.
+- `.status-summary__item` carries its own pill styling and the `.badge--*` colours (works with or without `.badge` on the element).
+- Fix: in `.collection-form` from 40rem the buttons are top-aligned and offset by one label line, so they line up with the input rather than the hint below it. Relies on the button group being `.cluster` or `.collection-form__actions` and on a single-line label.
+
+## Additions by design-system (QA cosmetics)
+
+- Footer: `.app-footer.container` keeps the exact left edge and width of header/main content; its cream-deep band and top border are painted full-bleed by `.app-footer::before` (100vw, centred). `#root` has `overflow-x: clip` so this never adds a horizontal scrollbar. `.app-footer` is pushed to the viewport bottom with `margin-top: auto`; `main.container` gets bottom padding.
+- Button groups: a `.cluster` containing `.stack` cells (button + hint, as in DataPanel) aligns to the top. Buttons in it have `min-width: 12rem` (`--btn-group-min`) and do not wrap; the `.stack` cell is `width: min-content`, so the hint (`p`, muted, 0.875rem) wraps under its button and never widens it.
+- `.product-card__header > .collection-item__demo`: tag never shrinks or wraps (`flex: 0 0 auto; white-space: nowrap`), top-aligned with the name. The header wraps, so a 60-char unbroken name wraps via overflow-wrap and the badge drops to the next line at 360px.
+- No new class names.
+
+## Additions by design-system (M4 final fixes)
+
+- Overflow root causes fixed (verified at 320x640 with `html{font-size:200%}` and normal text, plus 360 and 1280): `#root` no longer uses `overflow-x: clip`, so real overflow is visible rather than hidden. The full-bleed footer band is now `.app-footer::before` (cream-deep) and `::after` (1px top border), painted with a huge `box-shadow` spread and trimmed with `clip-path: inset(0 -100vmax)`; box-shadow adds no scrollable overflow.
+- Wrapping: `.btn` has `max-width:100%` and wraps its label; button groups use `min-width: min(12rem, 100%)` with `white-space: normal`; the `.cluster > .stack` cell is `flex: 0 1 auto` and its hint is up to 20rem wide without widening the button; `.badge` wraps (`width: fit-content; align-self: flex-start`, radius 0.875rem so wrapped pills do not turn into ovals); `.app-header__wordmark` uses `overflow-wrap: break-word`; `.dialog` max-width is `min(32rem, 100% - 2rem)` and its action buttons share the row (full width below 40rem).
+- `.badge` and `.collection-item__demo` are auto-width pills even inside `.stack`.
+- `.product-form` (a `.card` inside a `.card`) is a flat cream-deep panel with no shadow. Headings inside it (`h3`/`h5`, direct or nested) use the heading font, espresso, 1.0625rem, spanning the full grid row.
+- `.storage-notice` has `margin-top: var(--space-4)` so it sits apart from the header.
+- New class `.skip-link`: first focusable element, the UI should render `<a class="skip-link" href="#main-content">` before the header. Hidden off-screen until focused, then a burgundy/white link (about 11:1) at top-left with a double ring and 44px height. `main#main-content:focus { outline: none }` applies only to the programmatic target (give `main` `id="main-content"` and `tabIndex={-1}`).
+- At `max-width: 22.5rem` (320-360px, including 200% text since spacing tokens are rem) container, card, product-form, product-card and list-item padding shrink so content keeps usable width. Dialog padding is `space-4` below 40rem.

@@ -8,5 +8,5 @@ export type {
   FilterFn,
 } from './store';
 export { createPlannerStore } from './plannerStore';
-export { filterProducts } from './filters';
-export { countProductsByCollection } from './selectors';
+export { filterProducts, DEFAULT_FILTERS, hasActiveFilters, normalizeFilters } from './filters';
+export { countProductsByCollection, countProductsByStatus } from './selectors';

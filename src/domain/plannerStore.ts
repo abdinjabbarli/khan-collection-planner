@@ -125,7 +125,16 @@ export function createPlannerStore(storage?: Storage | null): PlannerStore {
       if (!existing) return { ok: false, errors: { name: 'That product no longer exists.' } };
       const v = validateProduct(input);
       if (!v.ok) return v;
-      const updated: Product = { ...existing, ...v.value, updatedAt: new Date().toISOString() };
+      const updated: Product = { ...existing, ...v.value, updatedAt: new Date().toISOString(), isDemo: false };
+      commit({ ...data, products: data.products.map((p) => (p.id === id ? updated : p)) });
+      return { ok: true, value: updated };
+    },
+    setProductStatus(id, status) {
+      if (!(STATUSES as readonly string[]).includes(status))
+        return { ok: false, errors: { status: 'Choose a status from the list.' } };
+      const existing = data.products.find((p) => p.id === id);
+      if (!existing) return { ok: false, errors: { status: 'That product no longer exists.' } };
+      const updated: Product = { ...existing, status: status as Status, updatedAt: new Date().toISOString(), isDemo: false };
       commit({ ...data, products: data.products.map((p) => (p.id === id ? updated : p)) });
       return { ok: true, value: updated };
     },
