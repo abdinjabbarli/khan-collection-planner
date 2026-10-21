@@ -58,3 +58,11 @@ Class names the UI Builder will use and the Design System must style (document a
 Behaviour rules (UI): selection is UI state only; creating a collection selects it; deleting the selected collection clears selection; focus is managed after create (to the new item's select button), rename (back to the Rename button), delete (to the "Collections" heading, `tabIndex=-1`). A shared `ConfirmDialog` is used by both delete-collection and reset-all.
 
 Store rule (domain): renaming a collection with `isDemo: true` sets `isDemo: false`, because the user has edited it and "Remove demo data" must never delete it. Renaming only changes case/whitespace of the same name is allowed (uniqueness excludes the collection itself).
+
+## Additions by design-system (M1)
+
+- New file `collections.css` (imported from `index.css`) styles every M1 contract class. No new class names were introduced beyond the contract, except optional `.collection-form__actions` (button row inside `.collection-form`; `.cluster` inside the form also works).
+- Selected item: `.collection-item--selected` or `[aria-current="true"]` on the select button (the `<li>` is matched via `:has`). Cues beyond colour: thicker burgundy left border, inset outline, and extra-bold name.
+- Item border uses `--color-muted` (about 7:1 on white) to meet 3:1 non-text contrast.
+- Long names wrap with `overflow-wrap: anywhere`; count and Demo tag never shrink.
+- `.collection-detail__actions` goes full width on mobile with buttons sharing the row; `.empty-state` inside `.collection-detail` is supported.
