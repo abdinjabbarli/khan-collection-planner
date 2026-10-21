@@ -9,3 +9,4 @@ export type {
 } from './store';
 export { createPlannerStore } from './plannerStore';
 export { filterProducts } from './filters';
+export { countProductsByCollection } from './selectors';

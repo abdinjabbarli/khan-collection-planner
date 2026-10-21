@@ -93,7 +93,7 @@ export function createPlannerStore(storage?: Storage | null): PlannerStore {
       if (!existing) return { ok: false, errors: { name: 'That collection no longer exists.' } };
       const v = validateCollectionName(name, id);
       if (!v.ok) return v;
-      const updated: Collection = { ...existing, name: v.value };
+      const updated: Collection = { ...existing, name: v.value, isDemo: false };
       commit({ ...data, collections: data.collections.map((c) => (c.id === id ? updated : c)) });
       return { ok: true, value: updated };
     },
