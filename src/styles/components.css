@@ -10,10 +10,14 @@
   color: var(--color-cream);
   font-family: var(--font-heading);
   font-size: 1.375rem;
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: break-word;
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
-.app-header__tagline { color: var(--color-cream-deep); font-size: 0.875rem; }
+.app-header .container > * { min-width: 0; }
+.app-header__tagline { overflow-wrap: anywhere; color: var(--color-cream-deep); font-size: 0.875rem; }
 .app-header a { color: var(--color-cream); }
 .app-header :focus-visible { outline-color: var(--color-cream); box-shadow: 0 0 0 4px var(--color-espresso), 0 0 0 6px var(--color-cream); }
 
@@ -29,16 +33,24 @@
   isolation: isolate;
   background: transparent;
 }
-.app-footer::before {
+/* Full-bleed band without real overflow: a huge box-shadow spread never adds scrollable
+   overflow, and clip-path trims it to the footer's own height (full width on the sides). */
+.app-footer::before,
+.app-footer::after {
   content: "";
   position: absolute;
   z-index: -1;
-  inset-block: 0;
-  left: 50%;
-  width: 100vw;
-  transform: translateX(-50%);
+  inset: 0;
   background: var(--color-cream-deep);
-  border-top: 1px solid var(--color-border);
+  box-shadow: 0 0 0 100vmax var(--color-cream-deep);
+  clip-path: inset(0 -100vmax);
+}
+.app-footer::after {
+  bottom: auto;
+  height: 1px;
+  background: var(--color-border);
+  box-shadow: 0 0 0 100vmax var(--color-border);
+  clip-path: inset(0 -100vmax);
 }
 .app-footer > * { margin-block: 0; }
 main.container { padding-bottom: var(--space-6); }
@@ -46,15 +58,17 @@ main.container { padding-bottom: var(--space-6); }
 
 /* Data panel: button groups keep natural size; hints sit under their button without widening it */
 .cluster { --btn-group-min: 12rem; }
+.cluster > * { min-width: 0; max-width: 100%; }
 .cluster:has(> .stack) { align-items: flex-start; }
 .cluster:has(> .stack) > .btn,
-.cluster > .stack > .btn { min-width: var(--btn-group-min); white-space: nowrap; }
-.cluster > .stack { flex: 0 0 auto; width: min-content; gap: var(--space-2); }
+.cluster > .stack > .btn { min-width: min(var(--btn-group-min), 100%); max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+.cluster > .stack { flex: 0 1 auto; min-width: 0; max-width: 100%; gap: var(--space-2); }
 .cluster > .stack > .btn { align-self: flex-start; }
-.cluster > .stack > p { margin: 0; color: var(--color-muted); font-size: 0.875rem; }
+.cluster > .stack > p { margin: 0; max-width: 20rem; color: var(--color-muted); font-size: 0.875rem; }
 
 /* Storage notice */
 .storage-notice {
+  margin-top: var(--space-4);
   display: flex;
   gap: var(--space-3);
   align-items: flex-start;
@@ -88,7 +102,9 @@ main.container { padding-bottom: var(--space-6); }
   border-radius: var(--radius-md);
   font-weight: 600;
   line-height: 1.2;
+  max-width: 100%;
   text-align: center;
+  overflow-wrap: break-word;
   text-decoration: none;
   cursor: pointer;
   transition: background-color 0.15s, color 0.15s, border-color 0.15s;
@@ -138,11 +154,15 @@ textarea.field__control { min-height: 6rem; resize: vertical; }
   align-items: center;
   padding: 0.125rem var(--space-3);
   border: 1px solid currentColor;
-  border-radius: 999px;
+  border-radius: 0.875rem;
   font-size: 0.8125rem;
   font-weight: 700;
   line-height: 1.4;
-  white-space: nowrap;
+  align-self: flex-start;
+  width: fit-content;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 .badge--idea { background: var(--color-idea-bg); color: var(--color-idea-text); }
 .badge--design { background: var(--color-design-bg); color: var(--color-design-text); }
@@ -153,7 +173,7 @@ textarea.field__control { min-height: 6rem; resize: vertical; }
 .dialog {
   margin: auto;
   width: calc(100% - 2 * var(--space-4));
-  max-width: 32rem;
+  max-width: min(32rem, calc(100% - 2 * var(--space-4)));
   max-height: calc(100vh - 2 * var(--space-4));
   overflow: auto;
   padding: var(--space-6);
@@ -164,6 +184,9 @@ textarea.field__control { min-height: 6rem; resize: vertical; }
   box-shadow: 0 12px 40px rgba(43, 43, 43, 0.35);
 }
 .dialog::backdrop { background: rgba(43, 43, 43, 0.6); }
+.dialog > * { min-width: 0; }
+.dialog h2, .dialog p { overflow-wrap: anywhere; }
+.dialog__actions > .btn { flex: 1 1 auto; }
 .dialog__actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--space-3); margin-top: var(--space-5); }
 
 /* Empty state */
@@ -177,3 +200,48 @@ textarea.field__control { min-height: 6rem; resize: vertical; }
 }
 .empty-state > * + * { margin-top: var(--space-3); }
 .empty-state h2, .empty-state h3 { color: var(--color-espresso); }
+
+/* Skip link: hidden until focused, then a visible burgundy button at the top-left */
+.skip-link {
+  position: absolute;
+  top: var(--space-2);
+  left: var(--space-2);
+  z-index: 100;
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--touch-target);
+  max-width: calc(100% - 2 * var(--space-2));
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-burgundy);
+  color: var(--color-white);
+  border-radius: var(--radius-md);
+  font-weight: 700;
+  text-decoration: underline;
+  transform: translateY(-300%);
+}
+.skip-link:hover { background: var(--color-burgundy-dark); color: var(--color-white); }
+.skip-link:focus, .skip-link:focus-visible {
+  transform: none;
+  outline: 3px solid var(--color-espresso);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 5px var(--color-cream);
+}
+/* Programmatic skip-link target only (tabIndex -1); never a keyboard stop itself */
+main#main-content:focus { outline: none; }
+
+/* Narrow screens / large text: spend less space on padding so labels keep room */
+@media (max-width: 39.99rem) {
+  .btn { padding-inline: var(--space-3); }
+  .dialog { padding: var(--space-4); }
+  .dialog__actions > .btn { flex: 1 1 100%; }
+}
+
+/* Very narrow viewport (320-360px, or large text enlarging the rem-based spacing):
+   trim nested padding so content keeps usable width instead of breaking mid-word. */
+@media (max-width: 22.5rem) {
+  .container { padding-inline: var(--space-2); }
+  .card, .collection-detail.card { padding: var(--space-3); }
+  .product-form { padding: var(--space-2); gap: var(--space-3); }
+  .product-card { padding: var(--space-3); }
+  .collection-item__select { padding-inline: var(--space-2); }
+}

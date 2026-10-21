@@ -137,3 +137,13 @@ CSS (Design System styles exactly these; document extras):
 - Button groups: a `.cluster` containing `.stack` cells (button + hint, as in DataPanel) aligns to the top. Buttons in it have `min-width: 12rem` (`--btn-group-min`) and do not wrap; the `.stack` cell is `width: min-content`, so the hint (`p`, muted, 0.875rem) wraps under its button and never widens it.
 - `.product-card__header > .collection-item__demo`: tag never shrinks or wraps (`flex: 0 0 auto; white-space: nowrap`), top-aligned with the name. The header wraps, so a 60-char unbroken name wraps via overflow-wrap and the badge drops to the next line at 360px.
 - No new class names.
+
+## Additions by design-system (M4 final fixes)
+
+- Overflow root causes fixed (verified at 320x640 with `html{font-size:200%}` and normal text, plus 360 and 1280): `#root` no longer uses `overflow-x: clip`, so real overflow is visible rather than hidden. The full-bleed footer band is now `.app-footer::before` (cream-deep) and `::after` (1px top border), painted with a huge `box-shadow` spread and trimmed with `clip-path: inset(0 -100vmax)`; box-shadow adds no scrollable overflow.
+- Wrapping: `.btn` has `max-width:100%` and wraps its label; button groups use `min-width: min(12rem, 100%)` with `white-space: normal`; the `.cluster > .stack` cell is `flex: 0 1 auto` and its hint is up to 20rem wide without widening the button; `.badge` wraps (`width: fit-content; align-self: flex-start`, radius 0.875rem so wrapped pills do not turn into ovals); `.app-header__wordmark` uses `overflow-wrap: break-word`; `.dialog` max-width is `min(32rem, 100% - 2rem)` and its action buttons share the row (full width below 40rem).
+- `.badge` and `.collection-item__demo` are auto-width pills even inside `.stack`.
+- `.product-form` (a `.card` inside a `.card`) is a flat cream-deep panel with no shadow. Headings inside it (`h3`/`h5`, direct or nested) use the heading font, espresso, 1.0625rem, spanning the full grid row.
+- `.storage-notice` has `margin-top: var(--space-4)` so it sits apart from the header.
+- New class `.skip-link`: first focusable element, the UI should render `<a class="skip-link" href="#main-content">` before the header. Hidden off-screen until focused, then a burgundy/white link (about 11:1) at top-left with a double ring and 44px height. `main#main-content:focus { outline: none }` applies only to the programmatic target (give `main` `id="main-content"` and `tabIndex={-1}`).
+- At `max-width: 22.5rem` (320-360px, including 200% text since spacing tokens are rem) container, card, product-form, product-card and list-item padding shrink so content keeps usable width. Dialog padding is `space-4` below 40rem.
