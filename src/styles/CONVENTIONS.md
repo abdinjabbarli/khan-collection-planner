@@ -90,3 +90,11 @@ Behaviour rules (UI):
 - Delete: `ConfirmDialog` titled `Delete product?` with description naming the product: `Delete "<name>" from "<collection>"? This cannot be undone.` Cancel/Esc keep it and return focus to the Delete button; confirm deletes, shows `Deleted "<name>"`, focus goes to the "Products" heading.
 - Empty states: collection with no products: `No products in "<collection>" yet. Add your first product idea.` with an "Add product" button; no collections: existing copy; "Add product" is disabled/hidden until a collection exists (it only exists inside a selected collection anyway).
 - Welcome text (App.tsx) must describe the features now available: collections, product ideas with name/type/colour/notes/status, moving products between collections, quick status changes, demo data, data stored in this browser only.
+
+## Additions by design-system (M2)
+
+- New file `products.css` (imported from `index.css`) styles every M2 contract class. `.sr-only` was missing and is now in `base.css`.
+- `.field__counter--over`: modifier for the over-limit state (danger colour, bold). The UI should also keep the textual "n / 500" so it is not colour alone.
+- No other new classes. `.product-card` has no hover state (it is not clickable). Notes clamp to 3 lines and keep line breaks (`white-space: pre-line`).
+- `.product-card__actions` is full width on mobile with buttons sharing the row; `.product-card__footer` sticks to the card bottom so cards in a row align.
+- `select.field__control` keeps the native arrow and behaviour; `textarea.field__control` is vertical-resize only, min 6rem.
