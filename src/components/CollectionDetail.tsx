@@ -31,7 +31,7 @@ export function CollectionDetail({ store, collection, productCount, onDeleted }:
   };
 
   return (
-    <section className="collection-detail card stack" aria-label={`Collection: ${collection.name}`}>
+    <section className="collection-detail card stack" aria-labelledby="collection-detail-title">
       <div className="collection-detail__header">
         {renaming ? (
           <>

@@ -64,7 +64,7 @@ describe('collection names', () => {
 });
 
 describe('demo interaction', () => {
-  it('renamed demo collection survives clearDemoData with its products as user data only', () => {
+  it('renamed demo collection is adopted with all its products and survives clearDemoData', () => {
     store.loadDemoData();
     const demo = store.getData().collections.find((c) => c.isDemo)!;
     const demoProductCount = store.getData().products.filter((p) => p.collectionId === demo.id).length;
@@ -74,7 +74,8 @@ describe('demo interaction', () => {
     store.clearDemoData();
     const d = store.getData();
     expect(d.collections.find((c) => c.id === demo.id)?.name).toBe('My renamed');
-    expect(d.products.filter((p) => p.collectionId === demo.id)).toHaveLength(0);
+    expect(d.products.filter((p) => p.collectionId === demo.id)).toHaveLength(demoProductCount);
+    expect(d.products.filter((p) => p.collectionId === demo.id).every((p) => !p.isDemo)).toBe(true);
     expect(d.collections.some((c) => c.isDemo)).toBe(false);
   });
   it('keeps user products in demo collections', () => {

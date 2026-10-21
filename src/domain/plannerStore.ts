@@ -94,7 +94,13 @@ export function createPlannerStore(storage?: Storage | null): PlannerStore {
       const v = validateCollectionName(name, id);
       if (!v.ok) return v;
       const updated: Collection = { ...existing, name: v.value, isDemo: false };
-      commit({ ...data, collections: data.collections.map((c) => (c.id === id ? updated : c)) });
+      // Renaming adopts the whole collection: its demo products become the user's too,
+      // so "Remove demo data" can never empty a collection the user has edited.
+      commit({
+        ...data,
+        collections: data.collections.map((c) => (c.id === id ? updated : c)),
+        products: data.products.map((pr) => (pr.collectionId === id ? { ...pr, isDemo: false } : pr)),
+      });
       return { ok: true, value: updated };
     },
     deleteCollection(id) {
