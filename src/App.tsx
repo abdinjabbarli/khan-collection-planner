@@ -14,9 +14,10 @@ export default function App() {
         <section className="stack" aria-labelledby="welcome-title">
           <h2 id="welcome-title">Welcome</h2>
           <p>
-            Welcome. KHAN Collection Planner will let you group product ideas into collections, and track each
-            product (type, colour, notes) through the stages Idea, Design, Sample and Ready. Collection and
-            product tools are coming in the next milestones; for now you can set up your starting data.
+            Group your product ideas into collections. Add products with a name, type, colour and design notes,
+            move them between collections, and change their status (Idea, Design, Sample, Ready) with a quick
+            selector. You can start with demo data or an empty planner. Your data stays in this browser only,
+            with no account and no server.
           </p>
         </section>
         {data.onboarded && <CollectionsPanel store={store} data={data} />}

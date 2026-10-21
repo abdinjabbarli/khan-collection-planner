@@ -92,6 +92,8 @@ export function CollectionsPanel({ store, data }: Props) {
             key={selected.id}
             store={store}
             collection={selected}
+            collections={data.collections}
+            products={data.products.filter((p) => p.collectionId === selected.id)}
             productCount={counts[selected.id] ?? 0}
             onDeleted={(name) => {
               setSelectedId(null);
