@@ -1,0 +1,64 @@
+/* M3: overview, filters, status summary */
+.overview { display: flex; flex-direction: column; gap: var(--space-4); min-width: 0; }
+.overview > * { margin-block: 0; min-width: 0; }
+
+/* Filter bar: 1 column on mobile; 3 selects + clear button in one row from 40rem */
+.filters {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-3);
+  align-items: end; /* button lines up with the selects, not the labels */
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.filters > * { min-width: 0; }
+.filters .field__control { max-width: 100%; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; }
+.filters > .btn { width: 100%; }
+.filters__count {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 0.875rem;
+}
+@media (min-width: 40rem) {
+  .filters { grid-template-columns: repeat(3, minmax(0, 1fr)) auto; gap: var(--space-4); }
+  .filters > .btn { width: auto; white-space: nowrap; }
+}
+
+/* Status summary: wrapping pills reusing .badge--* colours */
+.status-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.status-summary__item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 2rem;
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+/* Works with or without .badge on the same element */
+.status-summary__item.badge--idea { background: var(--color-idea-bg); color: var(--color-idea-text); }
+.status-summary__item.badge--design { background: var(--color-design-bg); color: var(--color-design-text); }
+.status-summary__item.badge--sample { background: var(--color-sample-bg); color: var(--color-sample-text); }
+.status-summary__item.badge--ready { background: var(--color-ready-bg); color: var(--color-ready-text); }
+
+/* Collection name line on a product card (overview) */
+.product-card__collection {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 0.875rem;
+  overflow-wrap: anywhere;
+}

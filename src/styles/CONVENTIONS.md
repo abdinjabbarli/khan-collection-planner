@@ -123,3 +123,10 @@ CSS (Design System styles exactly these; document extras):
 - `.status-summary` (a `<ul>`) and `.status-summary__item` (inline pills: text "Idea 2"; each includes the status text; use the status badge colours via `.badge--*` classes on the item).
 - `.product-card__collection`: small muted line on the card.
 - `.overview`: optional wrapper for the All-products panel.
+
+## Additions by design-system (M3)
+
+- New file `filters.css` (imported from `index.css`) styles `.overview`, `.filters`, `.filters__count`, `.status-summary`, `.status-summary__item`, `.product-card__collection`. No new class names.
+- `.filters` is a grid: 1 column on mobile; from 40rem `repeat(3, 1fr) auto` with `align-items: end`, so the Clear button sits level with the selects (fields in the bar must not have hints/errors). `.filters__count` spans the full row when placed inside `.filters`; it also works outside. Selects have `max-width:100%` and ellipsis so long collection names never overflow.
+- `.status-summary__item` carries its own pill styling and the `.badge--*` colours (works with or without `.badge` on the element).
+- Fix: in `.collection-form` from 40rem the buttons are top-aligned and offset by one label line, so they line up with the input rather than the hint below it. Relies on the button group being `.cluster` or `.collection-form__actions` and on a single-line label.
