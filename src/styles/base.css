@@ -13,7 +13,7 @@ body {
   overflow-wrap: break-word;
 }
 
-#root { min-height: 100vh; display: flex; flex-direction: column; }
+#root { min-height: 100vh; display: flex; flex-direction: column; overflow-x: clip; }
 
 h1, h2, h3, h4 {
   margin: 0;

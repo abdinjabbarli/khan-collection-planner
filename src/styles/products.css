@@ -58,6 +58,7 @@
   word-break: break-word;
 }
 .product-card__header > .badge { flex: 0 0 auto; }
+.product-card__header > .collection-item__demo { flex: 0 0 auto; white-space: nowrap; align-self: flex-start; margin-top: 0.125rem; }
 .product-card__meta {
   margin: 0;
   color: var(--color-muted);

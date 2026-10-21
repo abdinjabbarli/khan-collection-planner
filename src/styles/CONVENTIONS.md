@@ -130,3 +130,10 @@ CSS (Design System styles exactly these; document extras):
 - `.filters` is a grid: 1 column on mobile; from 40rem `repeat(3, 1fr) auto` with `align-items: end`, so the Clear button sits level with the selects (fields in the bar must not have hints/errors). `.filters__count` spans the full row when placed inside `.filters`; it also works outside. Selects have `max-width:100%` and ellipsis so long collection names never overflow.
 - `.status-summary__item` carries its own pill styling and the `.badge--*` colours (works with or without `.badge` on the element).
 - Fix: in `.collection-form` from 40rem the buttons are top-aligned and offset by one label line, so they line up with the input rather than the hint below it. Relies on the button group being `.cluster` or `.collection-form__actions` and on a single-line label.
+
+## Additions by design-system (QA cosmetics)
+
+- Footer: `.app-footer.container` keeps the exact left edge and width of header/main content; its cream-deep band and top border are painted full-bleed by `.app-footer::before` (100vw, centred). `#root` has `overflow-x: clip` so this never adds a horizontal scrollbar. `.app-footer` is pushed to the viewport bottom with `margin-top: auto`; `main.container` gets bottom padding.
+- Button groups: a `.cluster` containing `.stack` cells (button + hint, as in DataPanel) aligns to the top. Buttons in it have `min-width: 12rem` (`--btn-group-min`) and do not wrap; the `.stack` cell is `width: min-content`, so the hint (`p`, muted, 0.875rem) wraps under its button and never widens it.
+- `.product-card__header > .collection-item__demo`: tag never shrinks or wraps (`flex: 0 0 auto; white-space: nowrap`), top-aligned with the name. The header wraps, so a 60-char unbroken name wraps via overflow-wrap and the badge drops to the next line at 360px.
+- No new class names.

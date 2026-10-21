@@ -20,10 +20,38 @@
 .app-footer {
   background: var(--color-cream-deep);
   color: var(--color-charcoal);
-  border-top: 1px solid var(--color-border);
   padding-block: var(--space-5);
   font-size: 0.875rem;
+  /* The element is a .container (same left edge and width as header/main), so the band
+     is painted full-bleed by a pseudo-element instead of widening the element. */
+  margin-top: auto;
+  position: relative;
+  isolation: isolate;
+  background: transparent;
 }
+.app-footer::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset-block: 0;
+  left: 50%;
+  width: 100vw;
+  transform: translateX(-50%);
+  background: var(--color-cream-deep);
+  border-top: 1px solid var(--color-border);
+}
+.app-footer > * { margin-block: 0; }
+main.container { padding-bottom: var(--space-6); }
+
+
+/* Data panel: button groups keep natural size; hints sit under their button without widening it */
+.cluster { --btn-group-min: 12rem; }
+.cluster:has(> .stack) { align-items: flex-start; }
+.cluster:has(> .stack) > .btn,
+.cluster > .stack > .btn { min-width: var(--btn-group-min); white-space: nowrap; }
+.cluster > .stack { flex: 0 0 auto; width: min-content; gap: var(--space-2); }
+.cluster > .stack > .btn { align-self: flex-start; }
+.cluster > .stack > p { margin: 0; color: var(--color-muted); font-size: 0.875rem; }
 
 /* Storage notice */
 .storage-notice {
