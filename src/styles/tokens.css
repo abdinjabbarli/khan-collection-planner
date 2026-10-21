@@ -1,0 +1,46 @@
+:root {
+  --color-cream: #f6f0e4;
+  --color-cream-deep: #ece3d0;
+  --color-charcoal: #2b2b2b;
+  --color-espresso: #4a3326;
+  --color-burgundy: #6d1a2c;
+  --color-burgundy-dark: #561422;
+  --color-white: #fffdf8;
+  --color-danger: #8a1c1c;
+  --color-muted: #5e5146;
+  --color-border: #b9a98f;
+
+  --color-ok-bg: #e1eedd;
+  --color-ok-text: #1f4a28;
+  --color-warning-bg: #fff0c2;
+  --color-warning-text: #5a3a00;
+  --color-warning-border: #a86a00;
+
+  --color-idea-bg: #ece3d0;
+  --color-idea-text: #4a3326;
+  --color-design-bg: #e8dff0;
+  --color-design-text: #3f2a55;
+  --color-sample-bg: #fbe3b8;
+  --color-sample-text: #5a3a00;
+  --color-ready-bg: #d6ead2;
+  --color-ready-text: #1f4a28;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+
+  --radius-sm: 4px;
+  --radius-md: 10px;
+
+  --font-body: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-heading: Georgia, "Iowan Old Style", "Palatino Linotype", Palatino, "Times New Roman", serif;
+
+  --shadow-card: 0 1px 2px rgba(43, 43, 43, 0.08), 0 4px 12px rgba(74, 51, 38, 0.08);
+  --focus-ring: 0 0 0 3px var(--color-cream), 0 0 0 5px var(--color-burgundy);
+
+  --touch-target: 2.75rem;
+  --container-max: 64rem;
+}
