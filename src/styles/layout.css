@@ -24,3 +24,6 @@
 @media (min-width: 64rem) {
   .page-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
+
+/* Spacing between the storage notice and page content */
+.storage-notice { margin-bottom: var(--space-5); }

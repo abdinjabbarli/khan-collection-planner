@@ -2,11 +2,11 @@ import type { PersistenceStatus } from '../domain';
 
 const MESSAGES: Record<PersistenceStatus, string> = {
   persistent:
-    'Saved in this browser only (localStorage). Not synced across devices or browsers. Clearing site data will erase it.',
+    'Your data is stored in this browser only (localStorage). It is not synced across devices or browsers, and clearing site data will erase it.',
   unavailable:
     'Browser storage is blocked, so your changes are NOT saved and may be lost when the page closes.',
   failed: 'The latest change could not be saved and may be lost.',
-  recovered: 'Stored data was unreadable and was ignored.',
+  recovered: 'Previously stored data was unreadable and was ignored. Your next change will replace it.',
 };
 
 export function StorageNotice({ status }: { status: PersistenceStatus }) {

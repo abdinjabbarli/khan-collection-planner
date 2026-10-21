@@ -123,6 +123,7 @@ textarea.field__control { min-height: 6rem; resize: vertical; }
 
 /* Dialog (native <dialog>) */
 .dialog {
+  margin: auto;
   width: calc(100% - 2 * var(--space-4));
   max-width: 32rem;
   max-height: calc(100vh - 2 * var(--space-4));

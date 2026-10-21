@@ -6,7 +6,7 @@ A small single-page web app for planning clothing collections and tracking produ
 
 Planned by milestone. Only the shell is done so far.
 
-- [ ] **M0 - App shell**: project setup, design tokens, layout shell, build and deploy configuration (in progress; the shell is the only part marked done once it is merged)
+- [x] **M0 - App shell**: project setup, design tokens, layout shell, storage notice, demo load/remove, confirmed reset, and Netlify configuration
 - [ ] **M1 - Collections and products**: create collections, add and edit product ideas
 - [ ] **M2 - Status tracking**: move products from idea to ready, filter and sort
 - [ ] **M3 - Planning views**: overview of a collection, progress summaries
