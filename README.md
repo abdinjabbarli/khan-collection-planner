@@ -103,7 +103,7 @@ The site is built from the repository by Netlify (`npm run build`, publish `dist
 - [x] **M1 - Collections**: create, rename, select and delete collections with validation and persistence
 - [x] **M2 - Products**: add, edit, move, change status and delete products
 - [x] **M3 - Filters, demo data and empty states**: combined filters, result count, status summary, demo flows
-- [ ] **M4 - Polish and QA**: documentation, responsive and accessibility pass, final checks
+- [x] **M4 - Polish and QA**: documentation, responsive and accessibility pass, final checks
 
 ## Built with specialist sub-agents
 
