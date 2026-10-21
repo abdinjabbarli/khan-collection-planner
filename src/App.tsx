@@ -1,4 +1,5 @@
 import { AppHeader } from './components/AppHeader';
+import { CollectionsPanel } from './components/CollectionsPanel';
 import { DataPanel } from './components/DataPanel';
 import { StorageNotice } from './components/StorageNotice';
 import { useStore } from './components/useStore';
@@ -18,6 +19,7 @@ export default function App() {
             product tools are coming in the next milestones; for now you can set up your starting data.
           </p>
         </section>
+        {data.onboarded && <CollectionsPanel store={store} data={data} />}
         <DataPanel store={store} data={data} />
       </main>
       <footer className="app-footer container">
