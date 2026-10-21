@@ -43,7 +43,7 @@ Product types: T-shirt, Hoodie, Sweatshirt, Jacket, Pants, Shorts, Accessory, Ot
 - All data is stored in this browser's `localStorage` only.
 - It is not synced across devices or browsers.
 - It is cleared when you clear site data for this site.
-- In private browsing, or when storage is blocked, changes live only in memory and may be lost when the page closes. The app shows a notice saying so.
+- In private browsing, or when storage is blocked, changes live only in memory and may be lost when the page closes. When storage is blocked the app shows a notice that your changes are NOT saved and may be lost when the page closes. Some private windows still allow `localStorage`, so the notice may not appear there.
 - There is no server and no account.
 
 ## Accessibility notes
