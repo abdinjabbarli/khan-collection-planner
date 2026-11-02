@@ -23,7 +23,7 @@ optionally apply one palette colour to a product in that collection.
   Invalid palette entries are dropped individually and never discard collections or products.
 - Store: `savePalette`, `applyPaletteColour`. `deleteCollection`, `resetAll` and `clearDemoData` keep
   palettes consistent. Saving a palette adopts a demo collection (like rename) so "Remove demo data"
-  cannot delete a collection holding the user's palette.
+  cannot delete a collection holding the user's palette. Its demo products are adopted too (same as rename).
 - UI: `ColourStudio` panel (after Collections), `SavedPalette` block in the collection details.
   Stale responses are discarded with a request counter plus `AbortController`.
 

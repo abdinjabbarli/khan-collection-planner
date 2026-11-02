@@ -39,9 +39,17 @@ export function ColourStudio({ store, data }: Props) {
   const latest = useRef(0);
   const controller = useRef<AbortController | null>(null);
   const hexRef = useRef<HTMLInputElement>(null);
+  const resultRef = useRef<HTMLHeadingElement>(null);
+  const errorRef = useRef<HTMLDivElement>(null);
   const lastParams = useRef<{ hex: string; mode: PaletteMode } | null>(null);
 
   useEffect(() => () => controller.current?.abort(), []);
+
+  // Move focus to the outcome so keyboard and screen-reader users land on it (Retry/Generate may unmount or change).
+  useEffect(() => {
+    if (phase.kind === 'success') resultRef.current?.focus();
+    else if (phase.kind === 'error') errorRef.current?.focus();
+  }, [phase]);
 
   const target = data.collections.find((c) => c.id === targetId) ?? data.collections[0] ?? null;
   const existing = target ? data.palettes.find((p) => p.collectionId === target.id) : undefined;
@@ -157,7 +165,7 @@ export function ColourStudio({ store, data }: Props) {
               aria-describedby={[hexHintId, hexError ? hexErrId : ''].filter(Boolean).join(' ')}
             />
             <p className="field__hint" id={hexHintId}>
-              Six digits, 0-9 and A-F, for example #0047AB
+              Six digits, 0-9 and A-F, for example #0047AB. The colour picker follows this box once the HEX is valid.
             </p>
             {hexError && (
               <p className="field__error" id={hexErrId}>
@@ -181,7 +189,7 @@ export function ColourStudio({ store, data }: Props) {
         </fieldset>
 
         <div className="cluster">
-          <button type="submit" className="btn btn--primary" disabled={loading}>
+          <button type="submit" className="btn btn--primary" aria-busy={loading}>
             {loading ? 'Generating…' : 'Generate palette'}
           </button>
         </div>
@@ -189,11 +197,11 @@ export function ColourStudio({ store, data }: Props) {
 
       <div role="status" aria-live="polite" className="studio__status">
         {loading && 'Requesting a palette from The Color API…'}
-        {phase.kind === 'success' && 'Palette ready.'}
+        {phase.kind === 'success' && `Palette ready: ${phase.palette.colours.map((c) => `${c.name} ${c.hex}`).join(', ')}.`}
       </div>
 
       {phase.kind === 'error' && (
-        <div className="studio__error" role="alert">
+        <div className="studio__error" role="alert" tabIndex={-1} ref={errorRef}>
           <p>
             <strong>
               {phase.errorKind === 'timeout' ? 'Timed out. ' : phase.errorKind === 'invalid-response' ? 'Unexpected response. ' : 'Palette not generated. '}
@@ -208,7 +216,7 @@ export function ColourStudio({ store, data }: Props) {
 
       {phase.kind === 'success' && (
         <div className="stack" aria-labelledby={`${uid}-result`} role="group">
-          <h3 id={`${uid}-result`}>
+          <h3 id={`${uid}-result`} ref={resultRef} tabIndex={-1}>
             {MODE_INFO[phase.palette.mode].label} palette from {phase.palette.seedHex}
           </h3>
           <Swatches colours={phase.palette.colours} label="Generated palette" />
