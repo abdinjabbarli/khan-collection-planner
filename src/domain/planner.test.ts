@@ -128,7 +128,7 @@ describe('deletes, demo and reset', () => {
     expect(store.getData().onboarded).toBe(true);
     mkCol();
     store.resetAll();
-    expect(store.getData()).toEqual({ version: 1, collections: [], products: [], onboarded: false });
+    expect(store.getData()).toEqual({ version: 1, collections: [], products: [], palettes: [], onboarded: false });
   });
   it('notifies subscribers and supports unsubscribe', () => {
     let n = 0;

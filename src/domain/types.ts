@@ -43,10 +43,30 @@ export interface Product {
   isDemo: boolean;
 }
 
+export const PALETTE_MODES = ['monochrome', 'analogic', 'complement'] as const;
+export type PaletteMode = (typeof PALETTE_MODES)[number];
+
+export interface PaletteColour {
+  name: string;
+  /** Upper-case "#RRGGBB" */
+  hex: string;
+}
+
+/** A generated palette saved to a collection (at most one per collection). */
+export interface SavedPalette {
+  collectionId: string;
+  seedHex: string;
+  mode: PaletteMode;
+  colours: PaletteColour[];
+  savedAt: string; // ISO 8601
+}
+
 export interface AppData {
   version: 1;
   collections: Collection[];
   products: Product[];
+  /** Added after v1 launch; absent in older saved data and read as []. */
+  palettes: SavedPalette[];
   /** whether the first-visit choice (demo or empty) has been made */
   onboarded: boolean;
 }
@@ -57,6 +77,7 @@ export const EMPTY_DATA: AppData = {
   version: 1,
   collections: [],
   products: [],
+  palettes: [],
   onboarded: false,
 };
 

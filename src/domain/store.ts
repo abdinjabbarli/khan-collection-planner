@@ -1,6 +1,9 @@
 import type {
   AppData,
   Collection,
+  PaletteColour,
+  PaletteMode,
+  SavedPalette,
   Product,
   ProductFilters,
   ValidationErrors,
@@ -26,6 +29,13 @@ export interface ProductInput {
   colour: string;
   notes: string;
   status: string;
+}
+
+export interface PaletteInput {
+  collectionId: string;
+  seedHex: string;
+  mode: PaletteMode;
+  colours: PaletteColour[];
 }
 
 export type Result<T, K extends string> =
@@ -56,6 +66,17 @@ export interface PlannerStore {
    * Like updateProduct, a successful change makes a demo product user-owned.
    */
   setProductStatus(id: string, status: string): Result<Product, 'status'>;
+
+  /**
+   * Saves (or replaces) the collection's single palette. The UI must confirm before replacing.
+   * Saving adopts a demo collection (like renaming) so "Remove demo data" cannot delete it.
+   */
+  savePalette(input: PaletteInput): Result<SavedPalette, 'collectionId' | 'palette'>;
+  /**
+   * Explicitly applies one palette colour to a product's colour text ("Name #HEX", shortened to fit
+   * LIMITS.colour). Only ever called from a user action. The product must be in the palette's collection.
+   */
+  applyPaletteColour(productId: string, colour: PaletteColour): Result<Product, 'colour'>;
 
   /** Adds demo records (isDemo: true) and marks onboarded. Never touches user records. */
   loadDemoData(): void;
