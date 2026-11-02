@@ -1,5 +1,5 @@
-import { EMPTY_DATA, PRODUCT_TYPES, STATUSES, STORAGE_KEY } from './types';
-import type { AppData } from './types';
+import { EMPTY_DATA, PALETTE_MODES, PRODUCT_TYPES, STATUSES, STORAGE_KEY } from './types';
+import type { AppData, PaletteMode, SavedPalette } from './types';
 import type { PersistenceStatus } from './store';
 
 const PROBE_KEY = `${STORAGE_KEY}:probe`;
@@ -60,7 +60,32 @@ export function parseAppData(raw: unknown): AppData | null {
       colour: p.colour, notes: p.notes, createdAt: p.createdAt, updatedAt: p.updatedAt, isDemo: p.isDemo,
     });
   }
-  return { version: 1, collections, products, onboarded: raw.onboarded };
+  return { version: 1, collections, products, palettes: parsePalettes(raw.palettes, ids), onboarded: raw.onboarded };
+}
+
+const HEX_RE = /^#[0-9A-F]{6}$/;
+
+/** Older data has no `palettes`. Bad entries are dropped one by one, never the whole file. */
+function parsePalettes(raw: unknown, collectionIds: Set<string>): SavedPalette[] {
+  if (!Array.isArray(raw)) return [];
+  const seen = new Set<string>();
+  const out: SavedPalette[] = [];
+  for (const p of raw) {
+    if (
+      !isObj(p) || !str(p.collectionId) || !collectionIds.has(p.collectionId) || seen.has(p.collectionId) ||
+      !str(p.seedHex) || !HEX_RE.test(p.seedHex) || !str(p.mode) || !(PALETTE_MODES as readonly string[]).includes(p.mode) ||
+      !str(p.savedAt) || !Array.isArray(p.colours) || p.colours.length === 0 || p.colours.length > 10
+    ) continue;
+    const colours = [];
+    for (const c of p.colours) {
+      if (!isObj(c) || !str(c.name) || !str(c.hex) || !HEX_RE.test(c.hex)) break;
+      colours.push({ name: c.name, hex: c.hex });
+    }
+    if (colours.length !== p.colours.length) continue;
+    seen.add(p.collectionId);
+    out.push({ collectionId: p.collectionId, seedHex: p.seedHex, mode: p.mode as PaletteMode, colours, savedAt: p.savedAt });
+  }
+  return out;
 }
 
 export interface LoadResult {
@@ -69,7 +94,7 @@ export interface LoadResult {
 }
 
 export function loadFromStorage(storage: Storage | null): LoadResult {
-  const empty = (): AppData => ({ ...EMPTY_DATA, collections: [], products: [] });
+  const empty = (): AppData => ({ ...EMPTY_DATA, collections: [], products: [], palettes: [] });
   if (!probeStorage(storage)) return { data: empty(), persistence: 'unavailable' };
   let text: string | null;
   try {

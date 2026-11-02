@@ -1,8 +1,9 @@
-import { EMPTY_DATA, LIMITS, PRODUCT_TYPES, STATUSES } from './types';
-import type { AppData, Collection, Product, ProductType, Status } from './types';
+import { EMPTY_DATA, LIMITS, PALETTE_MODES, PRODUCT_TYPES, STATUSES } from './types';
+import type { AppData, Collection, PaletteColour, Product, ProductType, SavedPalette, Status } from './types';
 import type { CollectionInput, PersistenceStatus, PlannerStore, ProductInput, Result } from './store';
 import { getDefaultStorage, loadFromStorage, saveToStorage } from './storage';
 import { buildDemoRecords } from './demo';
+import { formatColourForProduct, normalizeHex } from './colorApi';
 
 function newId(): string {
   try {
@@ -13,7 +14,7 @@ function newId(): string {
   return `id-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
-const emptyData = (): AppData => ({ ...EMPTY_DATA, collections: [], products: [] });
+const emptyData = (): AppData => ({ ...EMPTY_DATA, collections: [], products: [], palettes: [] });
 
 export function createPlannerStore(storage?: Storage | null): PlannerStore {
   const backing = storage === undefined ? getDefaultStorage() : storage;
@@ -109,7 +110,50 @@ export function createPlannerStore(storage?: Storage | null): PlannerStore {
         ...data,
         collections: data.collections.filter((c) => c.id !== id),
         products: data.products.filter((p) => p.collectionId !== id),
+        palettes: data.palettes.filter((p) => p.collectionId !== id),
       });
+    },
+    savePalette(input) {
+      if (!data.collections.some((c) => c.id === input?.collectionId))
+        return { ok: false, errors: { collectionId: 'That collection no longer exists. Choose another one.' } };
+      const seed = normalizeHex(input.seedHex);
+      const colours: PaletteColour[] = [];
+      for (const c of input.colours ?? []) {
+        const h = normalizeHex(c?.hex ?? '');
+        if (!h.ok || typeof c.name !== 'string' || !c.name.trim()) break;
+        colours.push({ name: c.name.trim(), hex: h.hex });
+      }
+      if (!seed.ok || !(PALETTE_MODES as readonly string[]).includes(input.mode) || colours.length === 0 || colours.length !== input.colours.length)
+        return { ok: false, errors: { palette: 'This palette is not valid and was not saved.' } };
+      const saved: SavedPalette = {
+        collectionId: input.collectionId,
+        seedHex: seed.hex,
+        mode: input.mode,
+        colours,
+        savedAt: new Date().toISOString(),
+      };
+      commit({
+        ...data,
+        collections: data.collections.map((c) => (c.id === input.collectionId ? { ...c, isDemo: false } : c)),
+        products: data.products.map((p) => (p.collectionId === input.collectionId ? { ...p, isDemo: false } : p)),
+        palettes: [...data.palettes.filter((p) => p.collectionId !== input.collectionId), saved],
+      });
+      return { ok: true, value: saved };
+    },
+    applyPaletteColour(productId, colour) {
+      const existing = data.products.find((p) => p.id === productId);
+      if (!existing) return { ok: false, errors: { colour: 'That product no longer exists.' } };
+      const palette = data.palettes.find((p) => p.collectionId === existing.collectionId);
+      if (!palette || !palette.colours.some((c) => c.hex === colour?.hex && c.name === colour?.name))
+        return { ok: false, errors: { colour: 'That colour is not in this collection’s saved palette.' } };
+      const updated: Product = {
+        ...existing,
+        colour: formatColourForProduct(colour, LIMITS.colour),
+        updatedAt: new Date().toISOString(),
+        isDemo: false,
+      };
+      commit({ ...data, products: data.products.map((p) => (p.id === productId ? updated : p)) });
+      return { ok: true, value: updated };
     },
 
     addProduct(input) {
@@ -160,7 +204,8 @@ export function createPlannerStore(storage?: Storage | null): PlannerStore {
         .map((c) => (c.isDemo ? { ...c, isDemo: false } : c));
       const kept = new Set(collections.map((c) => c.id));
       const products = data.products.filter((p) => !p.isDemo && kept.has(p.collectionId));
-      commit({ ...data, collections, products });
+      const palettes = data.palettes.filter((p) => kept.has(p.collectionId));
+      commit({ ...data, collections, products, palettes });
     },
     startEmpty() {
       commit({ ...data, onboarded: true });

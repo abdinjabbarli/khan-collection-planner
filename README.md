@@ -124,3 +124,11 @@ The project was built with Claude Code. The main agent coordinated five speciali
 - No undo; deletes and reset are permanent after confirmation.
 - Demo data is in English only.
 - Tested mainly in Chromium; other browsers have not been checked thoroughly.
+
+## Colour Studio
+
+Generate a five-colour palette from a seed colour with [The Color API](https://www.thecolorapi.com/docs)
+(`/scheme`, no key or account), save it to a collection, and optionally apply one colour to a product.
+Palettes are stored in the browser with the rest of the data and shown without any further request.
+Colours are digital suggestions, not verified fabric or print matches. See `docs/COLOUR_STUDIO.md` and
+`docs/COLOUR_STUDIO_VERIFICATION.md`; `node scripts/verify-color-api.mjs` checks the live API and CORS.

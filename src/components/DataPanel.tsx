@@ -121,6 +121,7 @@ export function DataPanel({ store, data }: Props) {
         open={confirming}
         collections={collections}
         products={products}
+        palettes={store.getData().palettes.length}
         onCancel={close}
         onConfirm={() => {
           setMessage('All data deleted.');

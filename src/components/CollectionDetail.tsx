@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
-import type { Collection, PlannerStore, Product } from '../domain';
+import type { Collection, PlannerStore, Product, SavedPalette as SavedPaletteData } from '../domain';
 import { CollectionForm } from './CollectionForm';
 import { ConfirmDialog } from './ConfirmDialog';
 import { ProductsSection } from './ProductsSection';
+import { SavedPalette } from './SavedPalette';
 
 interface Props {
   store: PlannerStore;
@@ -10,12 +11,13 @@ interface Props {
   collections: Collection[];
   products: Product[];
   productCount: number;
+  palette?: SavedPaletteData;
   onDeleted: (name: string) => void;
 }
 
 const plural = (n: number) => `${n} product${n === 1 ? '' : 's'}`;
 
-export function CollectionDetail({ store, collection, collections, products, productCount, onDeleted }: Props) {
+export function CollectionDetail({ store, collection, collections, products, productCount, palette, onDeleted }: Props) {
   const [renaming, setRenaming] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [returnToRename, setReturnToRename] = useState(false);
@@ -71,11 +73,12 @@ export function CollectionDetail({ store, collection, collections, products, pro
       </div>
       {collection.isDemo && <p className="collection-item__demo">Demo (sample content)</p>}
       <p>{plural(productCount)}</p>
+      {palette && <SavedPalette key={collection.id} store={store} palette={palette} products={products} />}
       <ProductsSection store={store} collection={collection} collections={collections} products={products} />
       <ConfirmDialog
         open={confirming}
         title="Delete collection?"
-        description={`Delete "${collection.name}"? This will also delete ${plural(productCount)} in it. This cannot be undone.`}
+        description={`Delete "${collection.name}"? This will also delete ${plural(productCount)} in it${palette ? ' and its saved palette' : ''}. This cannot be undone.`}
         confirmLabel="Delete collection"
         danger
         onCancel={() => setConfirming(false)}

@@ -1,5 +1,6 @@
 import { AppHeader } from './components/AppHeader';
 import { CollectionsPanel } from './components/CollectionsPanel';
+import { ColourStudio } from './components/ColourStudio';
 import { DataPanel } from './components/DataPanel';
 import { ProductsOverview } from './components/ProductsOverview';
 import { StorageNotice } from './components/StorageNotice';
@@ -20,11 +21,12 @@ export default function App() {
           <p>
             Group your product ideas into collections. Add products with a name, type, colour and design notes,
             move them between collections, and change their status (Idea, Design, Sample, Ready) with a quick
-            selector. Filter all your products by collection, type and status from the overview. Optional, clearly labelled demo data can be added or removed at any time. Your data stays in this
+            selector. Filter all your products by collection, type and status from the overview. Use the Colour Studio to generate a five-colour palette from a seed colour and save it to a collection. Optional, clearly labelled demo data can be added or removed at any time. Your data stays in this
             browser only, with no account and no server.
           </p>
         </section>
         {data.onboarded && <CollectionsPanel store={store} data={data} />}
+        {data.onboarded && <ColourStudio store={store} data={data} />}
         {data.onboarded && <ProductsOverview store={store} data={data} />}
         <DataPanel store={store} data={data} />
       </main>
