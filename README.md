@@ -1,6 +1,6 @@
 # KHAN Collection Planner
 
-A small single-page web app for planning clothing collections and tracking product ideas from first idea to ready. It runs entirely in the browser: no account, no server, nothing is sent anywhere.
+A small single-page web app for planning clothing collections and tracking product ideas from first idea to ready. Planner data lives only in the browser. Signing in with Google is optional and adds a small cloud-saved profile (Supabase).
 
 ## Features
 
@@ -44,7 +44,16 @@ Product types: T-shirt, Hoodie, Sweatshirt, Jacket, Pants, Shorts, Accessory, Ot
 - It is not synced across devices or browsers.
 - It is cleared when you clear site data for this site.
 - In private browsing, or when storage is blocked, changes live only in memory and may be lost when the page closes. When storage is blocked the app shows a notice that your changes are NOT saved and may be lost when the page closes. Some private windows still allow `localStorage`, so the notice may not appear there.
-- There is no server and no account.
+- Optional Google sign-in (via Supabase Auth) stores only a profile in the cloud: display name and optional brand name. Collections, products and palettes are never uploaded, synced or made private to the account.
+- Palette generation sends the seed colour and palette mode to The Color API.
+
+## Google sign-in and profile
+
+- "Continue with Google" uses Supabase Auth (PKCE OAuth) and requests only `openid email profile`.
+- Config is two public Vite variables: `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` (see `.env.example`). Without them the app runs as guest-only.
+- The `profiles` table and Row Level Security live in `supabase/migrations/20261107000000_create_profiles.sql` (run it in the Supabase SQL Editor).
+- Setup steps for Netlify, Supabase and Google: [docs/AUTH_SETUP.md](docs/AUTH_SETUP.md).
+- Never add a Google client secret, Supabase secret/service_role key or database password to this repository.
 
 ## Accessibility notes
 

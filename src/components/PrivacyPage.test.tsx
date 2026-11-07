@@ -13,7 +13,7 @@ describe('privacy page', () => {
     expect(isPrivacyPath('/privacy-policy')).toBe(false);
   });
 
-  it('renders the notice, contact link and no unimplemented-feature claims', () => {
+  it('renders the notice, contact link, and accurate sign-in disclosures', () => {
     const host = document.createElement('div');
     document.body.appendChild(host);
     const root = createRoot(host);
@@ -22,7 +22,11 @@ describe('privacy page', () => {
     expect((host.querySelector('a[href^="mailto:"]') as HTMLAnchorElement).href).toBe('mailto:cabbarliabdin@gmail.com');
     expect(host.textContent).toMatch(/localStorage/);
     expect(host.textContent).toMatch(/Netlify/);
-    expect(host.textContent).not.toMatch(/Supabase|analytics cookies/i);
+    expect(host.textContent).toMatch(/Continue with Google/);
+    expect(host.textContent).toMatch(/Supabase/);
+    expect(host.textContent).toMatch(/Gmail, Google Drive/);
+    expect(host.textContent).toMatch(/Your planner data is not part of the profile/);
+    expect(host.textContent).not.toMatch(/analytics|no user accounts|no account/i);
     act(() => root.unmount());
     host.remove();
   });
