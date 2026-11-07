@@ -1,7 +1,9 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { hadAuthCode, initialCallbackError, supabase } from './supabaseClient';
+import { callbackContext, supabase } from './supabaseClient';
+import { messageForReason, reasonFromInit, stripCallbackParams } from './callback';
+import type { FailureReason } from './callback';
 import { fetchProfile, saveProfile, toAuthUser } from './profile';
 import type { AuthUser, Profile } from './profile';
 
@@ -35,7 +37,7 @@ export function useAuth(): AuthContextValue {
 export function AuthProvider({ children, client = supabase }: { children: ReactNode; client?: SupabaseClient | null }) {
   const [status, setStatus] = useState<AuthStatus>(client ? 'loading' : 'unconfigured');
   const [user, setUser] = useState<AuthUser | null>(null);
-  const [error, setError] = useState<string | null>(initialCallbackError);
+  const [error, setError] = useState<string | null>(callbackContext.urlReason ? messageForReason(callbackContext.urlReason) : null);
   const [busy, setBusy] = useState<AuthContextValue['busy']>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [profileStatus, setProfileStatus] = useState<ProfileStatus>('idle');
@@ -49,39 +51,47 @@ export function AuthProvider({ children, client = supabase }: { children: ReactN
   useEffect(() => {
     if (!client) return;
     let active = true;
-    if (initialCallbackError) {
-      // Drop the OAuth error parameters so a refresh does not show the message again.
-      window.history.replaceState(null, '', window.location.pathname);
-    }
     const apply = (session: { user: Parameters<typeof toAuthUser>[0] } | null) => {
       if (!active) return;
       if (session) {
         setUser(toAuthUser(session.user));
         setStatus('signedIn');
+        setError(null); // a working session is never reported as a sign-in failure
       } else {
         setUser(null);
         setStatus('signedOut');
       }
     };
-    client.auth
-      .getSession()
-      .then(({ data, error: err }) => {
-        if (!active) return;
-        if (err) setError('We could not restore your session. Please sign in again.');
-        else if (hadAuthCode && !data.session && !initialCallbackError)
-          setError('Google sign-in did not complete. Please try again.');
-        apply(data.session);
-      })
-      .catch(() => {
-        if (!active) return;
-        setError('We could not reach the sign-in service. Planner features still work as a guest.');
-        apply(null);
-      });
-    const { data } = client.auth.onAuthStateChange((event, session) => {
-      // Never call back into supabase synchronously here; just record the state.
-      if (event === 'INITIAL_SESSION') return; // handled by getSession above
+    (async () => {
+      // supabase-js exchanges the ?code= itself (detectSessionInUrl). initialize() returns its cached result,
+      // so repeated calls (StrictMode, remounts) never trigger a second exchange.
+      let initError: { name?: string; status?: number } | null = null;
+      try {
+        initError = (await client.auth.initialize()).error;
+      } catch {
+        initError = { name: 'AuthRetryableFetchError' };
+      }
+      let session = null;
+      try {
+        session = (await client.auth.getSession()).data.session;
+      } catch {
+        initError = initError ?? { name: 'AuthRetryableFetchError' };
+      }
+      stripCallbackParams(); // only now that the exchange has settled
+      if (!active) return;
+      if (!session) {
+        const reason: FailureReason | null =
+          callbackContext.urlReason ?? reasonFromInit(initError, callbackContext);
+        if (reason) {
+          setError(messageForReason(reason));
+          console.warn(`[auth] sign-in did not complete (reason: ${reason})`);
+        }
+      }
       apply(session);
-      if (event === 'SIGNED_IN') setError(null);
+    })();
+    const { data } = client.auth.onAuthStateChange((event, session) => {
+      if (event === 'INITIAL_SESSION') return; // handled by the initialization above
+      apply(session);
     });
     return () => {
       active = false;

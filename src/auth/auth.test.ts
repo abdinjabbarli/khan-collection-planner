@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { SupabaseClient, User } from '@supabase/supabase-js';
-import { readCallbackError, readSupabaseConfig } from './config';
+import { readSupabaseConfig } from './config';
+import { reasonFromInit, reasonFromUrl } from './callback';
 import { fetchProfile, greetingName, initialsOf, sanitizeAvatarUrl, saveProfile, toAuthUser, validateProfile } from './profile';
 
 describe('config', () => {
@@ -14,10 +15,24 @@ describe('config', () => {
       publishableKey: 'sb_publishable_a',
     });
   });
-  it('detects OAuth callback errors in query or hash', () => {
-    expect(readCallbackError({ search: '', hash: '' })).toBeNull();
-    expect(readCallbackError({ search: '?error=access_denied&error_description=User+denied', hash: '' })).toMatch(/cancelled/);
-    expect(readCallbackError({ search: '', hash: '#error=server_error&error_code=500' })).toMatch(/did not complete/);
+});
+
+describe('callback diagnostics', () => {
+  it('maps URL errors to allow-listed reasons', () => {
+    expect(reasonFromUrl({ search: '', hash: '' })).toBeNull();
+    expect(reasonFromUrl({ search: '?error=access_denied&error_description=User+denied', hash: '' })).toBe('cancelled');
+    expect(reasonFromUrl({ search: '?error=server_error&error_code=unexpected_failure', hash: '' })).toBe('provider');
+    expect(reasonFromUrl({ search: '', hash: '#error=weird&error_code=x' })).toBe('unknown');
+  });
+  it('classifies init failures without needing codes or tokens', () => {
+    const c = { hadCode: true, hadVerifier: true };
+    expect(reasonFromInit({ name: 'AuthPKCECodeVerifierMissingError' }, c)).toBe('verifier_missing');
+    expect(reasonFromInit({ name: 'AuthRetryableFetchError', status: 0 }, c)).toBe('network');
+    expect(reasonFromInit({ name: 'AuthApiError', status: 400 }, c)).toBe('invalid_code');
+    expect(reasonFromInit({ name: 'AuthApiError', status: 500 }, c)).toBe('provider');
+    expect(reasonFromInit(null, { hadCode: true, hadVerifier: false })).toBe('verifier_missing');
+    expect(reasonFromInit(null, { hadCode: true, hadVerifier: true })).toBe('unknown');
+    expect(reasonFromInit(null, { hadCode: false, hadVerifier: false })).toBeNull();
   });
 });
 

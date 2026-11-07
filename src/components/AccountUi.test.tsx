@@ -9,23 +9,31 @@ import { AccountBar } from './AccountBar';
 import { ProfileSection } from './ProfileSection';
 import { DataScopeNotice } from './DataScopeNotice';
 
+const ctx = vi.hoisted(() => ({ urlReason: null as string | null, hadCode: false, hadVerifier: true }));
+vi.mock('../auth/supabaseClient', () => ({ supabase: null, callbackContext: ctx }));
+
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
 const flush = () => act(async () => { await new Promise((r) => setTimeout(r, 0)); });
 
-function makeClient(session: unknown, row: { display_name: string; brand_name: string | null } | null = { display_name: 'Ada', brand_name: null }) {
+function makeClient(
+  session: unknown,
+  row: { display_name: string; brand_name: string | null } | null = { display_name: 'Ada', brand_name: null },
+  opts: { initError?: unknown; profileError?: boolean } = {},
+) {
   const signInWithOAuth = vi.fn().mockResolvedValue({ error: null });
   const signOut = vi.fn().mockResolvedValue({ error: null });
   const update = vi.fn(() => ({ eq: () => ({ select: () => Promise.resolve({ data: [{ display_name: 'x' }], error: null }) }) }));
   const client = {
     auth: {
+      initialize: vi.fn().mockResolvedValue({ error: opts.initError ?? null }),
       getSession: vi.fn().mockResolvedValue({ data: { session }, error: null }),
       onAuthStateChange: vi.fn(() => ({ data: { subscription: { unsubscribe: vi.fn() } } })),
       signInWithOAuth,
       signOut,
     },
     from: () => ({
-      select: () => ({ eq: () => ({ maybeSingle: () => Promise.resolve({ data: row, error: null }) }) }),
+      select: () => ({ eq: () => ({ maybeSingle: () => Promise.resolve(opts.profileError ? { data: null, error: { message: 'relation "profiles" does not exist' } } : { data: row, error: null }) }) }),
       update,
     }),
   } as unknown as SupabaseClient;
@@ -41,7 +49,8 @@ function mount(client: SupabaseClient | null) {
   act(() => root!.render(<AuthProvider client={client}><AccountBar /><ProfileSection /><DataScopeNotice /></AuthProvider>));
   return host;
 }
-afterEach(() => { act(() => root?.unmount()); host?.remove(); });
+afterEach(() => {
+  ctx.urlReason = null; ctx.hadCode = false; ctx.hadVerifier = true; window.history.replaceState(null, '', '/'); act(() => root?.unmount()); host?.remove(); });
 
 const session = { user: { id: 'u1', email: 'ada@example.com', user_metadata: { full_name: 'Ada Lovelace', avatar_url: 'https://lh3.googleusercontent.com/a/x' } } };
 
@@ -94,5 +103,61 @@ describe('account UI (simulated auth)', () => {
     expect(el.textContent).toContain('Sign-in is not available');
     expect(el.textContent).not.toContain('Continue with Google');
     expect(el.textContent).toMatch(/does not\s+sync, back up or move them/);
+  });
+
+  // Regression: a ?code= return whose exchange succeeded (or whose profile call fails) must never be
+  // reported as "Google sign-in did not complete".
+  it('callback with ?code= and a valid session: signed in, no failure message, URL cleaned', async () => {
+    ctx.hadCode = true;
+    window.history.replaceState(null, '', '/?code=SECRET123&sb_flow_id=abc');
+    const { client } = makeClient(session);
+    const el = mount(client);
+    await flush();
+    expect(el.textContent).toContain('Hello, Ada');
+    expect(el.textContent).not.toContain('did not complete');
+    expect(window.location.search).toBe('');
+  });
+
+  it('profile fetch failure is reported as a profile problem, not a sign-in failure', async () => {
+    ctx.hadCode = true;
+    const { client } = makeClient(session, null, { profileError: true });
+    const el = mount(client);
+    await flush();
+    expect(el.textContent).toContain('Hello, Ada Lovelace');
+    expect(el.textContent).toContain('We could not load your profile');
+    expect(el.textContent).not.toContain('did not complete');
+    expect(el.textContent).not.toContain('relation');
+  });
+
+  it('exchange failure shows a sanitized, specific message and never echoes the code', async () => {
+    ctx.hadCode = true;
+    window.history.replaceState(null, '', '/?code=SECRET123');
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const { client } = makeClient(null, null, { initError: { name: 'AuthApiError', status: 400, message: 'flow state SECRET123 not found' } });
+    const el = mount(client);
+    await flush();
+    expect(el.textContent).toContain('already been used or has expired');
+    expect(el.textContent).not.toContain('SECRET123');
+    expect(el.textContent).toContain('Continue with Google');
+    expect(window.location.search).toBe('');
+    expect(warn.mock.calls.flat().join(' ')).toBe('[auth] sign-in did not complete (reason: invalid_code)');
+    warn.mockRestore();
+  });
+
+  it('?code= with no stored PKCE verifier explains the browser mismatch', async () => {
+    ctx.hadCode = true;
+    ctx.hadVerifier = false;
+    const { client } = makeClient(null);
+    const el = mount(client);
+    await flush();
+    expect(el.textContent).toContain('could not be matched to this browser');
+  });
+
+  it('initialize() is awaited once per mount and the app never exchanges the code itself', async () => {
+    const { client } = makeClient(session);
+    mount(client);
+    await flush();
+    expect((client.auth.initialize as ReturnType<typeof vi.fn>).mock.calls.length).toBe(1);
+    expect((client.auth as unknown as Record<string, unknown>).exchangeCodeForSession).toBeUndefined();
   });
 });
