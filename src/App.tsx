@@ -3,6 +3,7 @@ import { CollectionsPanel } from './components/CollectionsPanel';
 import { ColourStudio } from './components/ColourStudio';
 import { DataPanel } from './components/DataPanel';
 import { ProductsOverview } from './components/ProductsOverview';
+import { PRIVACY_PATH } from './components/PrivacyPage';
 import { StorageNotice } from './components/StorageNotice';
 import { useStore } from './components/useStore';
 
@@ -32,7 +33,8 @@ export default function App() {
       </main>
       <footer className="app-footer container">
         <p>
-          KHAN Collection Planner. A personal planning tool with no account and no server.
+          KHAN Collection Planner. A personal planning tool with no account and no server.{' '}
+          <a href={PRIVACY_PATH}>Privacy</a>
         </p>
       </footer>
     </>
