@@ -1,0 +1,184 @@
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import type { ReactNode } from 'react';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import { hadAuthCode, initialCallbackError, supabase } from './supabaseClient';
+import { fetchProfile, saveProfile, toAuthUser } from './profile';
+import type { AuthUser, Profile } from './profile';
+
+export type AuthStatus = 'unconfigured' | 'loading' | 'signedOut' | 'signedIn';
+export type ProfileStatus = 'idle' | 'loading' | 'ready' | 'error';
+
+export interface AuthContextValue {
+  status: AuthStatus;
+  user: AuthUser | null;
+  /** Sign-in / sign-out / session error, in plain language. */
+  error: string | null;
+  busy: 'signingIn' | 'signingOut' | null;
+  profile: Profile | null;
+  profileStatus: ProfileStatus;
+  profileError: string | null;
+  signInWithGoogle: () => Promise<void>;
+  signOut: () => Promise<void>;
+  reloadProfile: () => void;
+  updateProfile: (profile: Profile) => Promise<void>;
+  dismissError: () => void;
+}
+
+const AuthContext = createContext<AuthContextValue | null>(null);
+
+export function useAuth(): AuthContextValue {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error('useAuth must be used inside <AuthProvider>');
+  return ctx;
+}
+
+export function AuthProvider({ children, client = supabase }: { children: ReactNode; client?: SupabaseClient | null }) {
+  const [status, setStatus] = useState<AuthStatus>(client ? 'loading' : 'unconfigured');
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [error, setError] = useState<string | null>(initialCallbackError);
+  const [busy, setBusy] = useState<AuthContextValue['busy']>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [profileStatus, setProfileStatus] = useState<ProfileStatus>('idle');
+  const [profileError, setProfileError] = useState<string | null>(null);
+  const [profileTick, setProfileTick] = useState(0);
+  const userId = user?.id ?? null;
+  const userRef = useRef<AuthUser | null>(null);
+  userRef.current = user;
+
+  // Restore the session on load / after the OAuth redirect, then follow auth changes.
+  useEffect(() => {
+    if (!client) return;
+    let active = true;
+    if (initialCallbackError) {
+      // Drop the OAuth error parameters so a refresh does not show the message again.
+      window.history.replaceState(null, '', window.location.pathname);
+    }
+    const apply = (session: { user: Parameters<typeof toAuthUser>[0] } | null) => {
+      if (!active) return;
+      if (session) {
+        setUser(toAuthUser(session.user));
+        setStatus('signedIn');
+      } else {
+        setUser(null);
+        setStatus('signedOut');
+      }
+    };
+    client.auth
+      .getSession()
+      .then(({ data, error: err }) => {
+        if (!active) return;
+        if (err) setError('We could not restore your session. Please sign in again.');
+        else if (hadAuthCode && !data.session && !initialCallbackError)
+          setError('Google sign-in did not complete. Please try again.');
+        apply(data.session);
+      })
+      .catch(() => {
+        if (!active) return;
+        setError('We could not reach the sign-in service. Planner features still work as a guest.');
+        apply(null);
+      });
+    const { data } = client.auth.onAuthStateChange((event, session) => {
+      // Never call back into supabase synchronously here; just record the state.
+      if (event === 'INITIAL_SESSION') return; // handled by getSession above
+      apply(session);
+      if (event === 'SIGNED_IN') setError(null);
+    });
+    return () => {
+      active = false;
+      data.subscription.unsubscribe();
+    };
+  }, [client]);
+
+  // Load the profile row for the signed-in user.
+  useEffect(() => {
+    if (!client || !userId) {
+      setProfile(null);
+      setProfileStatus('idle');
+      setProfileError(null);
+      return;
+    }
+    let active = true;
+    setProfileStatus('loading');
+    setProfileError(null);
+    (async () => {
+      try {
+        let p = await fetchProfile(client, userId);
+        if (!p) p = await saveProfile(client, userId, { displayName: userRef.current?.name ?? '', brandName: '' });
+        if (!active) return;
+        setProfile(p);
+        setProfileStatus('ready');
+      } catch {
+        if (!active) return;
+        setProfileStatus('error');
+        setProfileError('We could not load your profile. Your planner data in this browser is not affected.');
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [client, userId, profileTick]);
+
+  const signInWithGoogle = useCallback(async () => {
+    if (!client) return;
+    setError(null);
+    setBusy('signingIn');
+    try {
+      const { error: err } = await client.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/`,
+          scopes: 'openid email profile', // basic identity only
+        },
+      });
+      if (err) throw err;
+      // On success the browser is redirected to Google; keep the "busy" state until it leaves.
+    } catch {
+      setBusy(null);
+      setError('We could not start Google sign-in. Please try again.');
+    }
+  }, [client]);
+
+  const signOut = useCallback(async () => {
+    if (!client) return;
+    setError(null);
+    setBusy('signingOut');
+    try {
+      const { error: err } = await client.auth.signOut({ scope: 'local' });
+      if (err) throw err;
+    } catch {
+      setError('We could not sign you out cleanly. Please try again.');
+    } finally {
+      setBusy(null);
+    }
+  }, [client]);
+
+  const updateProfile = useCallback(
+    async (next: Profile) => {
+      if (!client || !userRef.current) throw new Error('Not signed in');
+      const saved = await saveProfile(client, userRef.current.id, next);
+      setProfile(saved);
+      setProfileStatus('ready');
+    },
+    [client],
+  );
+
+  const value = useMemo<AuthContextValue>(
+    () => ({
+      status,
+      user,
+      error,
+      busy,
+      profile,
+      profileStatus,
+      profileError,
+      signInWithGoogle,
+      signOut,
+      reloadProfile: () => setProfileTick((n) => n + 1),
+      updateProfile,
+      dismissError: () => setError(null),
+    }),
+    [status, user, error, busy, profile, profileStatus, profileError, signInWithGoogle, signOut, updateProfile],
+  );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}

@@ -1,0 +1,32 @@
+/* Account bar (inside the dark header) */
+.account-bar { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-2); max-width: 100%; }
+@media (min-width: 40rem) { .account-bar { align-items: flex-end; } }
+.account-bar__user { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
+.account-bar__greeting { margin: 0; color: var(--color-cream); font-weight: 600; overflow-wrap: anywhere; }
+.account-bar__note { margin: 0; color: var(--color-cream-deep); font-size: 0.875rem; }
+.account-bar__error {
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-white);
+  color: var(--color-danger);
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 600;
+  max-width: 24rem;
+}
+.link-button { background: none; border: 0; padding: 0; color: var(--color-burgundy); text-decoration: underline; font: inherit; cursor: pointer; }
+.app-header .btn--ghost { color: var(--color-cream); border-color: var(--color-cream); }
+.app-header .btn--ghost:hover:not(:disabled) { background: rgba(246, 240, 228, 0.15); color: var(--color-cream); }
+
+/* "Continue with Google": neutral light button, follows Google's branding guidance (logo + plain label) */
+.btn--google { background: var(--color-white); color: #1f1f1f; border-color: #747775; }
+.btn--google:hover:not(:disabled) { background: #f0ede4; color: #1f1f1f; }
+.google-mark { flex: none; }
+
+.avatar { width: 40px; height: 40px; border-radius: 50%; flex: none; object-fit: cover; border: 2px solid var(--color-cream); background: var(--color-cream-deep); }
+.avatar--initials { display: inline-flex; align-items: center; justify-content: center; background: var(--color-burgundy); color: var(--color-white); font-weight: 700; font-size: 0.875rem; }
+
+/* Cloud profile vs browser data explainer */
+.scope-grid { display: grid; gap: var(--space-4); }
+@media (min-width: 40rem) { .scope-grid { grid-template-columns: 1fr 1fr; } }
+.scope-grid h3 { margin: 0; font-size: 1rem; }

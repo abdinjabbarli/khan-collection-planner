@@ -78,3 +78,14 @@ Use browser dev tools at about 360 to 390 px wide.
 - [ ] On the first Tab press after page load, a "Skip to main content" link appears; activating it moves focus to the main content.
 - [ ] Activating "Clear filters" returns focus to the Collection filter.
 - [ ] In the All products list, screen readers announce the Edit and Delete buttons with the collection name, for example "Edit Hoodie in Winter Drop".
+
+## Google sign-in and profile (needs the SQL, env vars and URL settings from AUTH_SETUP.md)
+- [ ] Guest: with no sign-in, collections, products and Colour Studio all work; "Continue with Google" and the "Where your information is kept" card are visible.
+- [ ] Click "Continue with Google", pick an account, and land back on the live site signed in (URL has no `?code=`). Greeting shows your Google name; photo shows or initials appear.
+- [ ] Profile card: edit display name and brand name, Save, see "Profile saved"; refresh and confirm the values and greeting persist. In Supabase Table Editor the row's `id` equals your auth user id.
+- [ ] Refresh while signed in: still signed in. Planner data unchanged.
+- [ ] Sign out: back to guest, planner data still present in this browser.
+- [ ] Cancel at the Google screen: a friendly "Sign-in was cancelled" message, app still usable.
+- [ ] With a second Google account, confirm it sees its own empty profile and not the first one's.
+- [ ] Browser console shows no Content Security Policy errors; /privacy loads directly and on refresh.
+
