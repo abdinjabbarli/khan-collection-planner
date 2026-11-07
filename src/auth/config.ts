@@ -19,20 +19,3 @@ export function readSupabaseConfig(env: Record<string, unknown>): SupabaseConfig
   if (publishableKey.startsWith('sb_secret_')) return null;
   return { url: url.replace(/\/+$/, ''), publishableKey };
 }
-
-/** Pulls an OAuth error out of the callback URL (query or hash), if there is one. */
-export function readCallbackError(location: Pick<Location, 'search' | 'hash'>): string | null {
-  const sources = [location.search, location.hash.startsWith('#') ? location.hash.slice(1) : location.hash];
-  for (const raw of sources) {
-    const params = new URLSearchParams(raw.startsWith('?') ? raw.slice(1) : raw);
-    if (params.get('error') || params.get('error_code')) {
-      const code = params.get('error_code') ?? params.get('error') ?? '';
-      const description = params.get('error_description') ?? '';
-      if (code === 'access_denied' || /denied|cancel/i.test(description)) {
-        return 'Sign-in was cancelled. You can try again whenever you like.';
-      }
-      return 'Google sign-in did not complete. Please try again.';
-    }
-  }
-  return null;
-}
