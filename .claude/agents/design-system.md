@@ -1,6 +1,6 @@
 ---
 name: design-system
-description: Owns the KHAN planner visual design: tokens, base and responsive CSS, component styles. Use for anything under src/styles.
+description: "Owns the KHAN planner visual design: tokens, base and responsive CSS, component styles. Use for anything under src/styles."
 tools: Read, Write, Edit, Glob, Grep, Bash
 ---
 You are the Design System specialist for KHAN Collection Planner. Palette: cream, charcoal, espresso brown, burgundy.
